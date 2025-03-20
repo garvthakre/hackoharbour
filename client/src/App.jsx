@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
 import Footer from "./components/Footer";
+import PDFRagApp from "./pages/PDFRAGApp";
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
     <Navbar/>
     <Routes>
       <Route path="/" element={<LandingPage/>} />
+      <Route path="/rag" element={<PDFRagApp/>} />
       <Route path="/home" element={<PrivateRoute><Home/></PrivateRoute>} />
       <Route path="/signup" element={<Signup/>} />
       <Route path="/login" element={<Login/>} />
