@@ -7,7 +7,9 @@ import connectDB from './config/database.js';
 import apiRoutes from './routes/api.js';
 import indexRoute from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
-
+import spaceRoutes from './routes/spaceRoutes.js';
+// ...
+ 
 // Connect to MongoDB
 connectDB();
 
@@ -15,7 +17,7 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use('/api/spaces', spaceRoutes);
 // Routes
 app.use('/api', apiRoutes);
 app.use('/', indexRoute);
