@@ -2,12 +2,15 @@ import React from 'react'
 import { useState } from "react"
 import { useNavigate, Link } from "react-router"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { useDispatch } from 'react-redux'
+import { setCredentials } from '../redux/authSlice'
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: "", password: "" })
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
     const navigate = useNavigate()
+    const dispatch = useDispatch()
   
     const handleChange = (e) => {
       setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -29,10 +32,21 @@ const Login = () => {
         console.log("Server Response:", data); // Debugging
   
         if (res.ok) {
+          // Store token in localStorage for backward compatibility
           localStorage.setItem("token", data.token)
+          
+          // Store user data and token in Redux
+          dispatch(setCredentials({
+            user: {
+              _id: data.user._id,
+              name: data.user.name,
+              email: data.user.email
+            },
+            token: data.token
+          }))
+          
           console.log("Login res is OK.")
           navigate("/rag")
-        //   setUser(data.user)
         } else {
           setError(data.message || "Login failed. Please try again.")
         }

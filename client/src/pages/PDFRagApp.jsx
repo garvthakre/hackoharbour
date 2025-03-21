@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PDFViewer from './PDFViewer';
-import ReactMarkdown from 'react-markdown'; // Import for markdown support
-import { Search, Plus, Copy, Check } from 'lucide-react'; // Import icons
+import ReactMarkdown from 'react-markdown';
+import { Search, Plus, Copy, Check } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser, selectCurrentToken } from '../redux/authSlice';
 
 function PDFRagApp(props) {
   const [documents, setDocuments] = useState([]);
@@ -23,23 +25,23 @@ function PDFRagApp(props) {
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   
-  const messagesEndRef = useRef(null); // Ref for auto-scrolling
+  const messagesEndRef = useRef(null);
   
-  // Get user from localStorage
-  const user = JSON.parse(localStorage.getItem('user')) || null;
-  const token = localStorage.getItem('token') || null;
+  // Get user and token from Redux
+  const user = useSelector(selectCurrentUser);
+  const token = useSelector(selectCurrentToken);
 
   useEffect(() => {
     fetchDocuments();
-    fetchUserChats();
-  }, []);
+    if (user && user._id) {
+      fetchUserChats();
+    }
+  }, [user]);
 
-  // Auto-scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Search functionality
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredMessages(messages);
@@ -64,10 +66,10 @@ function PDFRagApp(props) {
   };
 
   const fetchUserChats = async () => {
-    if (!user) return;
+    if (!user || !user._id) return;
     
     try {
-      const response = await fetch(`/api/chats/user/${user.id}`, {
+      const response = await fetch(`/api/chats/user/${user._id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -115,7 +117,6 @@ function PDFRagApp(props) {
         document.getElementById('pdfFile').value = '';
         fetchDocuments();
         
-        // Add a system message
         const systemMessage = {
           type: 'system',
           content: `Document "${file.name}" was uploaded and processed successfully!`
@@ -123,7 +124,6 @@ function PDFRagApp(props) {
         
         setMessages([...messages, systemMessage]);
         
-        // If we're in a chat, save this message
         if (activeChatId && selectedDocId) {
           await saveMessageToChat(systemMessage);
         }
@@ -145,7 +145,6 @@ function PDFRagApp(props) {
       setSelectedDocId(docId);
       setSelectedDocName(selectedDoc.title);
       
-      // Create a new chat for this document
       await createNewChat(docId, selectedDoc.title);
     } else {
       setSelectedDocId('');
@@ -154,10 +153,9 @@ function PDFRagApp(props) {
   };
 
   const createNewChat = async (documentId, documentName) => {
-    if (!user) return;
+    if (!user || !user._id) return;
     if (!documentId || !documentName) return;
     
-    // Clear current messages
     setMessages([]);
     
     const systemMessage = {
@@ -168,7 +166,6 @@ function PDFRagApp(props) {
     setMessages([systemMessage]);
     
     try {
-      // Create a new chat in the database
       const response = await fetch('/api/chats', {
         method: 'POST',
         headers: {
@@ -176,7 +173,7 @@ function PDFRagApp(props) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId: user._id,
           documentId: documentId,
           title: `Chat about ${documentName}`,
           message: systemMessage
@@ -188,7 +185,6 @@ function PDFRagApp(props) {
         setActiveChatId(newChat._id);
         setActiveChatTitle(newChat.title);
         
-        // Refresh chat list
         fetchUserChats();
       }
     } catch (error) {
@@ -229,12 +225,10 @@ function PDFRagApp(props) {
       });
       
       if (response.ok) {
-        // Clear current chat
         setActiveChatId(null);
         setActiveChatTitle('New Chat');
         setMessages([]);
         
-        // Refresh chat list
         fetchUserChats();
       }
     } catch (error) {
@@ -243,7 +237,7 @@ function PDFRagApp(props) {
   };
 
   const saveMessageToChat = async (newMessage) => {
-    if (!user || !activeChatId) return;
+    if (!user || !user._id || !activeChatId) return;
     
     try {
       await fetch('/api/chats', {
@@ -254,7 +248,7 @@ function PDFRagApp(props) {
         },
         body: JSON.stringify({
           chatId: activeChatId,
-          userId: user.id,
+          userId: user._id,
           documentId: selectedDocId,
           message: newMessage
         })
@@ -281,17 +275,14 @@ function PDFRagApp(props) {
       return;
     }
     
-    // Add user message
     const userMessage = { type: 'user', content: message, id: Date.now() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setMessage('');
     
-    // Save user message to chat
     if (activeChatId) {
       await saveMessageToChat(userMessage);
-    } else if (user) {
-      // Create a new chat with this message
+    } else if (user && user._id) {
       try {
         const response = await fetch('/api/chats', {
           method: 'POST',
@@ -300,7 +291,7 @@ function PDFRagApp(props) {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            userId: user.id,
+            userId: user._id,
             documentId: selectedDocId,
             title: `Chat about ${selectedDocName}`,
             message: userMessage
@@ -318,7 +309,6 @@ function PDFRagApp(props) {
       }
     }
     
-    // Process the query
     setIsLoading(true);
     
     try {
@@ -335,11 +325,9 @@ function PDFRagApp(props) {
       
       const result = await response.json();
       if (response.ok) {
-        // Add bot response
         const botMessage = { type: 'bot', content: result.answer, id: Date.now() };
         setMessages([...updatedMessages, botMessage]);
         
-        // Save bot message to chat
         if (activeChatId) {
           await saveMessageToChat(botMessage);
         }
@@ -363,23 +351,19 @@ function PDFRagApp(props) {
     }
   };
 
-  // Toggle PDF viewer
   const togglePdfViewer = () => {
     setShowPdfViewer(!showPdfViewer);
   };
 
-  // Copy message to clipboard
   const copyMessageToClipboard = (messageId, content) => {
     navigator.clipboard.writeText(content);
     setCopiedMessageId(messageId);
     
-    // Reset copied status after 2 seconds
     setTimeout(() => {
       setCopiedMessageId(null);
     }, 2000);
   };
 
-  // Toggle search bar
   const toggleSearch = () => {
     setShowSearch(!showSearch);
     if (!showSearch) {
@@ -413,7 +397,7 @@ function PDFRagApp(props) {
               className="p-1 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               disabled={!selectedDocId}
             >
-              New
+              <Plus size={16} />
             </button>
           </div>
           
@@ -461,7 +445,7 @@ function PDFRagApp(props) {
                   >
                     {showPdfViewer ? 'Hide PDF' : 'Show PDF'}
                   </button>
-                  <button 
+                  <button
                     onClick={toggleSearch}
                     className="py-1 px-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center gap-1"
                   >
@@ -471,203 +455,128 @@ function PDFRagApp(props) {
                 </div>
               )}
             </div>
-            <div className="profile">
-              {user ? (
-                <div className="flex items-center gap-3">
-                  <span>{user.name}</span>
-                  <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-blue-500"></div>
-              )}
-            </div>
+            
+            <form onSubmit={handleUpload} className="flex gap-2">
+              <input
+                type="file"
+                id="pdfFile"
+                accept=".pdf"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <label
+                htmlFor="pdfFile"
+                className="py-2 px-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                Select PDF
+              </label>
+              <button
+                type="submit"
+                disabled={isLoading || !file}
+                className="py-2 px-4 bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Upload & Process
+              </button>
+            </form>
           </header>
-
-          {/* Search Bar - Conditionally rendered */}
-          {showSearch && (
-            <div className="p-3 bg-gray-800 border-b border-gray-700">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search in messages..."
-                  className="w-full p-2 pl-10 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <Search className="absolute left-3 top-3 text-gray-400" size={16} />
-              </div>
+          
+          {uploadStatus && (
+            <div className="p-3 bg-gray-800 text-center border-b border-gray-700">
+              {uploadStatus}
             </div>
           )}
 
-          {/* Split View - Chat and PDF Viewer */}
+          {/* Main Content Area */}
           <div className="flex-1 flex overflow-hidden">
-            {/* Chat Area */}
-            <div className={`flex-1 p-6 overflow-auto flex flex-col ${showPdfViewer && selectedDocId ? 'w-1/2' : 'w-full'}`}>
-              {messages.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center">
-                  <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-lg w-full text-center">
-                    <h2 className="text-xl font-semibold mb-4">Upload your PDF</h2>
-                    <form className="flex flex-col gap-3">
-                      <input
-                        type="file"
-                        id="pdfFile"
-                        accept=".pdf"
-                        onChange={handleFileChange}
-                        className="w-full p-3 bg-gray-700 rounded-lg text-white file:bg-blue-600 file:text-white file:border-0 file:px-4 file:py-2 file:rounded-lg file:cursor-pointer"
-                      />
-                    </form>
-                  </div>
-                  
-                  <div className="mt-6 text-center">
-                    <h2 className="text-xl font-semibold mb-2">Your Documents</h2>
-                    <select
-                      className="p-3 bg-gray-700 rounded-lg text-white w-64"
-                      value={selectedDocId}
-                      onChange={handleDocumentSelect}
-                    >
-                      <option value="" disabled>Select a PDF</option>
-                      {documents.map(doc => (
-                        <option key={doc._id} value={doc._id}>{doc.title}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex-1 flex flex-col gap-4">
-                  {(showSearch ? filteredMessages : messages).map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`relative max-w-3/4 p-4 rounded-lg group ${
-                        msg.type === 'user'
-                          ? 'bg-blue-600 ml-auto'
-                          : msg.type === 'bot'
-                          ? 'bg-gray-700'
-                          : 'bg-gray-600 text-gray-200 text-sm italic self-center'
-                      }`}
-                    >
-                      {isLoading && index === messages.length - 1 ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-pulse h-2 w-2 bg-gray-400 rounded-full"></div>
-                          <div className="animate-pulse h-2 w-2 bg-gray-400 rounded-full" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="animate-pulse h-2 w-2 bg-gray-400 rounded-full" style={{ animationDelay: '0.4s' }}></div>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Markdown rendering for bot messages */}
-                          {msg.type === 'bot' ? (
-                            <div className="markdown-content">
-                              <ReactMarkdown>
-                                {msg.content}
-                              </ReactMarkdown>
-                            </div>
-                          ) : (
-                            msg.content
-                          )}
-                          
-                          {/* Copy button - only show for non-system messages */}
-                          {msg.type !== 'system' && (
-                            <button 
-                              onClick={() => copyMessageToClipboard(msg.id, msg.content)}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
-                            >
-                              {copiedMessageId === msg.id ? (
-                                <Check size={14} className="text-green-500" />
-                              ) : (
-                                <Copy size={14} />
-                              )}
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
+            {/* Chat Messages */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {showSearch && (
+                <div className="p-3 bg-gray-800 border-b border-gray-700">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search in conversation..."
+                    className="w-full p-2 bg-gray-700 rounded-lg text-white"
+                  />
                 </div>
               )}
+              
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {(showSearch ? filteredMessages : messages).map((msg, index) => (
+                  <div
+                    key={msg.id || index}
+                    className={`p-4 rounded-lg max-w-3xl ${
+                      msg.type === 'user'
+                        ? 'bg-blue-700 ml-auto'
+                        : msg.type === 'bot'
+                        ? 'bg-gray-700'
+                        : 'bg-gray-800 border border-gray-700 text-gray-400 text-sm'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-medium">
+                        {msg.type === 'user' ? 'You' : msg.type === 'bot' ? 'AI' : 'System'}
+                      </span>
+                      {msg.type !== 'system' && (
+                        <button
+                          onClick={() => copyMessageToClipboard(msg.id || index, msg.content)}
+                          className="text-gray-400 hover:text-white"
+                        >
+                          {copiedMessageId === (msg.id || index) ? (
+                            <Check size={16} />
+                          ) : (
+                            <Copy size={16} />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    {msg.type === 'bot' ? (
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    ) : (
+                      <div>{msg.content}</div>
+                    )}
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+                
+                {isLoading && (
+                  <div className="p-4 bg-gray-700 rounded-lg animate-pulse max-w-3xl">
+                    <p>AI is thinking...</p>
+                  </div>
+                )}
+              </div>
+              
+              <form onSubmit={handleMessageSubmit} className="p-5 bg-gray-800 border-t border-gray-700">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={selectedDocId ? "Ask a question about the document..." : "Please select a document first"}
+                    disabled={!selectedDocId || isLoading}
+                    className="flex-1 p-3 bg-gray-700 rounded-lg text-white disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!selectedDocId || !message.trim() || isLoading}
+                    className="px-5 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Send
+                  </button>
+                </div>
+              </form>
             </div>
-            
-            {/* PDF Viewer */}
+
+            {/* PDF Viewer Section */}
             {showPdfViewer && selectedDocId && (
-              <div className="w-1/2 border-l border-gray-700 overflow-hidden flex flex-col">
-                <PDFViewer documentId={selectedDocId} messages={messages} />
+              <div className="w-1/2 border-l border-gray-700 overflow-hidden">
+                <PDFViewer documentId={selectedDocId} />
               </div>
             )}
           </div>
-
-          {/* Document Selection and Upload */}
-          <div className="bg-gray-800 p-4 border-t border-gray-700">
-            <div className="flex justify-between items-center mb-4">
-              <select
-                className="p-2 bg-gray-700 rounded-lg text-white"
-                value={selectedDocId}
-                onChange={handleDocumentSelect}
-              >
-                <option value="" disabled>Select a PDF</option>
-                {documents.map(doc => (
-                  <option key={doc._id} value={doc._id}>{doc.title}</option>
-                ))}
-              </select>
-              
-              <div className="flex gap-2">
-                <input
-                  type="file"
-                  id="pdfFile"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <label htmlFor="pdfFile" className="py-2 px-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600">
-                  Choose PDF
-                </label>
-                <button
-                  onClick={handleUpload}
-                  disabled={!file || isLoading}
-                  className={`py-2 px-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${(!file || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isLoading ? 'Processing...' : 'Upload & Process'}
-                </button>
-              </div>
-            </div>
-            
-            {/* Chat Input */}
-            <form onSubmit={handleMessageSubmit} className="flex gap-3">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={selectedDocId ? "Ask a question about the document..." : "Select a document first"}
-                className="flex-1 p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!selectedDocId || isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!selectedDocId || !message.trim() || isLoading}
-                className={`py-3 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${(!selectedDocId || !message.trim() || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="animate-pulse h-2 w-2 bg-white rounded-full"></span>
-                    <span className="animate-pulse h-2 w-2 bg-white rounded-full" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="animate-pulse h-2 w-2 bg-white rounded-full" style={{ animationDelay: '0.4s' }}></span>
-                  </span>
-                ) : 'Send'}
-              </button>
-            </form>
-          </div>
         </div>
       </div>
-
-      {/* Floating Action Button for New Chat */}
-      {selectedDocId && (
-        <button
-          onClick={() => createNewChat(selectedDocId, selectedDocName)}
-          className="fixed bottom-6 right-6 p-4 bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-10"
-        >
-          <Plus size={24} />
-        </button>
-      )}
     </div>
   );
 }
