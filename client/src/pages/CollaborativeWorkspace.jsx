@@ -9,13 +9,15 @@ const CollaborativeWorkspace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [answer, setAnswer] = useState('');
   const [queryLoading, setQueryLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
 
   // Fetch space data on component mount
   useEffect(() => {
     fetchSpaceData();
+    if (spaceId) {
+      fetchChatHistory();
+    }
   }, [spaceId]);
 
   const fetchSpaceData = async () => {
@@ -46,19 +48,37 @@ const CollaborativeWorkspace = () => {
     }
   };
 
+  const fetchChatHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/chat/${spaceId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setChatHistory(data.messages.map(msg => ({
+          id: msg.id,
+          type: msg.type,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          user: msg.user
+        })));
+      } else {
+        console.error('Failed to fetch chat history');
+      }
+    } catch (err) {
+      console.error('Error fetching chat history:', err);
+    }
+  };
+
   const handleSubmitQuery = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
     
     setQueryLoading(true);
-    const newQuestion = {
-      type: 'question',
-      content: query,
-      timestamp: new Date().toISOString()
-    };
-    
-    // Add to chat history immediately
-    setChatHistory(prev => [...prev, newQuestion]);
     
     try {
       const token = localStorage.getItem('token');
@@ -78,15 +98,8 @@ const CollaborativeWorkspace = () => {
       const data = await res.json();
       
       if (res.ok) {
-        // Add response to chat history
-        setChatHistory(prev => [
-          ...prev, 
-          {
-            type: 'answer',
-            content: data.answer,
-            timestamp: new Date().toISOString()
-          }
-        ]);
+        // Fetch updated chat history after submitting a query
+        await fetchChatHistory();
         setQuery(''); // Clear input
       } else {
         setError(data.error || 'Failed to get answer');
@@ -194,19 +207,24 @@ const CollaborativeWorkspace = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {chatHistory.map((message, index) => (
+                  {chatHistory.map((message) => (
                     <div 
-                      key={index}
+                      key={message.id}
                       className={`rounded-lg p-3 max-w-[80%] ${
                         message.type === 'question' 
                           ? 'bg-zinc-200 ml-auto' 
                           : 'bg-blue-100'
                       }`}
                     >
-                      <div className="text-sm">{message.content}</div>
-                      <div className="text-xs text-zinc-500 mt-1">
-                        {new Date(message.timestamp).toLocaleTimeString()}
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-xs font-medium">
+                          {message.type === 'question' ? message.user?.name || 'You' : 'AI Assistant'}
+                        </span>
+                        <span className="text-xs text-zinc-500">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </span>
                       </div>
+                      <div className="text-sm">{message.content}</div>
                     </div>
                   ))}
                 </div>
