@@ -2,21 +2,17 @@
 import express from 'express';
 import { uploadDocument, getAllDocuments } from '../controllers/documentController.js';
 import { queryDocument } from '../controllers/queryController.js';
-import configureFileUpload from '../utils/fileUpload.js';
-import { login, signup } from '../controllers/authController.js';
-
-const upload = configureFileUpload();
+import multer from 'multer';
+import { protect } from '../middleware/authMiddleware.js';
+import authRoutes from '../routes/authRoutes.js'
 const router = express.Router();
-
+const upload = multer({ dest: 'uploads/' });
+router.use('/api', authRoutes);
 // Document routes
-router.post('/upload', upload.single('pdf'), uploadDocument);
+router.post('/documents/upload', upload.single('file'), uploadDocument);
 router.get('/documents', getAllDocuments);
-
-// Auth Route
-router.post('/signup', signup);
-router.post('/login', login);
-
+router.use('/api', authRoutes);
 // Query route
-router.post('/query', queryDocument);
+router.post('/query', protect, queryDocument);
 
 export default router;
