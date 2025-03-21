@@ -7,8 +7,8 @@ import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
 import Footer from "./components/Footer";
 import PDFRagApp from "./pages/PDFRAGApp";
-
-
+import CollaborativeSpace from "./pages/CollaborativeSpace";
+import CollaborativeWorkspace from "./pages/CollaborativeWorkspace";
 function App() {
 
   return (
@@ -21,7 +21,8 @@ function App() {
       <Route path="/home" element={<PrivateRoute><Home/></PrivateRoute>} />
       <Route path="/signup" element={<Signup/>} />
       <Route path="/login" element={<Login/>} />
-
+      <Route path="/spaces" element={<PrivateRoute><CollaborativeSpace/></PrivateRoute>} />
+<Route path="/space/:spaceId" element={<PrivateRoute><CollaborativeWorkspace/></PrivateRoute>} />
 
 
 
