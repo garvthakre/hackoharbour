@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Share2, Users, FileText, MessageSquare, Loader2 } from 'lucide-react';
 
@@ -11,6 +11,7 @@ const CollaborativeWorkspace = () => {
   const [query, setQuery] = useState('');
   const [queryLoading, setQueryLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
+  const chatContainerRef = useRef(null);
 
   // Fetch space data on component mount
   useEffect(() => {
@@ -19,6 +20,13 @@ const CollaborativeWorkspace = () => {
       fetchChatHistory();
     }
   }, [spaceId]);
+
+  // Scroll to bottom of chat when history changes
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
 
   const fetchSpaceData = async () => {
     try {
@@ -59,13 +67,7 @@ const CollaborativeWorkspace = () => {
       
       if (res.ok) {
         const data = await res.json();
-        setChatHistory(data.messages.map(msg => ({
-          id: msg.id,
-          type: msg.type,
-          content: msg.content,
-          timestamp: msg.timestamp,
-          user: msg.user
-        })));
+        setChatHistory(data.messages);
       } else {
         console.error('Failed to fetch chat history');
       }
@@ -198,7 +200,10 @@ const CollaborativeWorkspace = () => {
             </div>
             
             {/* Chat history */}
-            <div className="h-96 overflow-y-auto mb-4 border rounded-lg p-3 bg-zinc-50">
+            <div 
+              ref={chatContainerRef}
+              className="h-96 overflow-y-auto mb-4 border rounded-lg p-3 bg-zinc-50"
+            >
               {chatHistory.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <MessageSquare className="h-10 w-10 text-zinc-300 mb-2" />
@@ -218,13 +223,13 @@ const CollaborativeWorkspace = () => {
                     >
                       <div className="flex justify-between items-start mb-1">
                         <span className="text-xs font-medium">
-                          {message.type === 'question' ? message.user?.name || 'You' : 'AI Assistant'}
+                          {message.type === 'question' ? (message.user ? message.user.name : 'You') : 'AI Assistant'}
                         </span>
                         <span className="text-xs text-zinc-500">
                           {new Date(message.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      <div className="text-sm">{message.content}</div>
+                      <div className="text-sm whitespace-pre-wrap">{message.content}</div>
                     </div>
                   ))}
                 </div>
@@ -257,11 +262,11 @@ const CollaborativeWorkspace = () => {
               {space.members.map((member, index) => (
                 <div key={index} className="flex items-center p-2 rounded hover:bg-zinc-50">
                   <div className="w-8 h-8 bg-zinc-200 rounded-full flex items-center justify-center text-zinc-700 mr-3">
-                    {member.name.charAt(0).toUpperCase()}
+                    {member.name ? member.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div>
-                    <p className="font-medium">{member.name}</p>
-                    <p className="text-xs text-zinc-500">{member.email}</p>
+                    <p className="font-medium">{member.name || 'User'}</p>
+                    <p className="text-xs text-zinc-500">{member.email || ''}</p>
                   </div>
                   {member._id === space.createdBy._id && (
                     <span className="ml-auto text-xs bg-zinc-100 px-2 py-1 rounded">
