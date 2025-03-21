@@ -2,14 +2,26 @@
 import { queryPinecone } from '../services/pineconeService.js';
 import { ChatGroq } from '@langchain/groq';
 import { RetrievalQAChain } from 'langchain/chains';
+import ChatMessage from '../models/chatMessage.js';
 
 // Query a document
 const queryDocument = async (req, res, next) => {
   try {
-    const { documentId, query } = req.body;
+    const { documentId, query, spaceId } = req.body;
+    const userId = req.user.id;
     
     if (!documentId || !query) {
       return res.status(400).json({ error: 'Document ID and query are required' });
+    }
+    
+    // Save the user's question to chat history if spaceId is provided
+    if (spaceId) {
+      await ChatMessage.create({
+        spaceId,
+        userId,
+        type: 'question',
+        content: query
+      });
     }
     
     // Get the vector store for the document
@@ -28,6 +40,16 @@ const queryDocument = async (req, res, next) => {
     const response = await chain.call({
       query: query
     });
+    
+    // Save the AI's answer to chat history if spaceId is provided
+    if (spaceId) {
+      await ChatMessage.create({
+        spaceId,
+        userId, // Using the same userId to track who initiated the conversation
+        type: 'answer',
+        content: response.text
+      });
+    }
     
     res.status(200).json({ answer: response.text });
     
