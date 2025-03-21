@@ -10,7 +10,7 @@ const SignUp = () => {
       email: "",
       password: "",
     });
-    console.log(formData); // checking form'
+    console.log(formData); // checking form
   
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
@@ -30,7 +30,7 @@ const SignUp = () => {
       console.log("Form Data from handleSubmit:", formData); // Debugging
   
       try {
-        const res = await fetch("/api/auth/signup", {
+        const res = await fetch("/api/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -43,7 +43,7 @@ const SignUp = () => {
         localStorage.setItem("token", data.token); // Store token in localStorage
         console.log("Stored Token:", localStorage.getItem("token")); // Print
          console.log("res is ok.")
-         navigate("/home");
+         navigate("/rag");
         } else {
           setError(data.message || "Signup failed. Please try again.");
           alert(data.message || "Signup failed. Please try again.");

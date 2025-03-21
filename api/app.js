@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import connectDB from './config/database.js';
 import apiRoutes from './routes/api.js';
 import indexRoute from './routes/index.js';
-import errorHandler from './middlewares/errorHandler.js';
+import errorHandler from './middleware/errorHandler.js';
 
 // Connect to MongoDB
 connectDB();

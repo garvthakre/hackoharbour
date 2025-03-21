@@ -20,7 +20,7 @@ const Login = () => {
       setError("")
   
       try {
-        const res = await fetch("/api/auth/login", {
+        const res = await fetch("/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -31,7 +31,7 @@ const Login = () => {
         if (res.ok) {
           localStorage.setItem("token", data.token)
           console.log("Login res is OK.")
-          navigate("/home")
+          navigate("/rag")
         //   setUser(data.user)
         } else {
           setError(data.message || "Login failed. Please try again.")
