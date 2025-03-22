@@ -1,4 +1,5 @@
-import ChatMessage from '../models/ChatMessage.js';
+import ChatMessage from '../models/chatMessage.js';
+import User from '../models/User.js';
 import Space from '../models/Space.js';
 
 // Save a new chat message
@@ -7,7 +8,7 @@ export const saveMessage = async (req, res) => {
     const { spaceId, type, content } = req.body;
     const userId = req.user.id;
 
-    // Verify the space exists and user is a member
+    // Validate space exists and user is a member
     const space = await Space.findById(spaceId);
     if (!space) {
       return res.status(404).json({ error: 'Space not found' });
@@ -18,32 +19,40 @@ export const saveMessage = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Create and save the message
+    // Create new chat message
     const message = await ChatMessage.create({
       spaceId,
       userId,
       type,
-      content,
-      timestamp: new Date()
+      content
     });
 
-    // Populate user information before sending response
+    // Populate user information
     const populatedMessage = await ChatMessage.findById(message._id).populate('userId', 'name email');
 
-    res.status(201).json({ message: populatedMessage });
+    res.status(201).json({ 
+      message: 'Message saved successfully',
+      data: {
+        id: populatedMessage._id,
+        type: populatedMessage.type,
+        content: populatedMessage.content,
+        timestamp: populatedMessage.timestamp,
+        user: populatedMessage.userId
+      }
+    });
   } catch (error) {
     console.error('Error saving message:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
 
-// Get chat history for a space
+// Get chat history for a specific space
 export const getChatHistory = async (req, res) => {
   try {
     const { spaceId } = req.params;
     const userId = req.user.id;
 
-    // Verify the space exists and user is a member
+    // Validate space exists and user is a member
     const space = await Space.findById(spaceId);
     if (!space) {
       return res.status(404).json({ error: 'Space not found' });
@@ -54,23 +63,18 @@ export const getChatHistory = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Get messages for this space, sorted by timestamp
+    // Get messages for this space
     const messages = await ChatMessage.find({ spaceId })
       .sort({ timestamp: 1 })
-      .populate('userId', 'name email')
-      .lean();
+      .populate('userId', 'name email');
 
-    // Format messages for client
+    // Format the messages
     const formattedMessages = messages.map(msg => ({
       id: msg._id,
       type: msg.type,
       content: msg.content,
       timestamp: msg.timestamp,
-      user: {
-        id: msg.userId._id,
-        name: msg.userId.name,
-        email: msg.userId.email
-      }
+      user: msg.userId
     }));
 
     res.status(200).json({ messages: formattedMessages });
