@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import PDFViewer from './PDFViewer';
 import ReactMarkdown from 'react-markdown';
 import { Search, Plus, Copy, Check } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import { selectCurrentUser, selectCurrentToken } from '../redux/authSlice';
 
 function PDFRagApp(props) {
   const [documents, setDocuments] = useState([]);
@@ -25,14 +23,23 @@ function PDFRagApp(props) {
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   
-  const messagesEndRef = useRef(null);
+  // User and token state variables (replacing Redux)
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState('');
   
-  // Get user and token from Redux
-  const user = useSelector(selectCurrentUser);
-  const token = useSelector(selectCurrentToken);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchDocuments();
+    const storedToken = localStorage.getItem('token');
+    setToken(storedToken);
+    
+    if (storedToken) {
+      fetchUserInfo(storedToken);
+    }
+  }, []);
+
+  useEffect(() => {
     if (user && user._id) {
       fetchUserChats();
     }
@@ -54,6 +61,23 @@ function PDFRagApp(props) {
     
     setFilteredMessages(filtered);
   }, [searchQuery, messages]);
+
+  const fetchUserInfo = async (authToken) => {
+    try {
+      const response = await fetch('/api/user/me', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user info:', error);
+    }
+  };
 
   const fetchDocuments = async () => {
     try {
