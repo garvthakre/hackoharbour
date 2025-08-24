@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import PDFViewer from "./PDFViewer";
 import ReactMarkdown from "react-markdown";
-import { Search, Plus, Copy, Check } from "lucide-react";
+import { Search, Plus, Copy, Check, Trash2 } from "lucide-react";
 import { Link } from "react-router";
 
 function PDFRagApp(props) {
@@ -18,23 +18,20 @@ function PDFRagApp(props) {
   const [activeChatTitle, setActiveChatTitle] = useState("New Chat");
   const [showPdfViewer, setShowPdfViewer] = useState(true);
 
-  // New state variables for added features
+  // Search and UI state
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
 
-  // User and token state variables (replacing Redux)
+  // User and auth state
   const [user, setUser] = useState(null);
   const [token, setToken] = useState("");
 
-  // New state for model selection
+  // Model selection
   const [availableModels, setAvailableModels] = useState([
     { id: "llama3-70b-8192", name: "llama3-70b-8192" },
-    {
-      id: "deepseek-r1-distill-llama-70b",
-      name: "deepseek-r1-distill-llama-70b",
-    },
+    { id: "deepseek-r1-distill-llama-70b", name: "deepseek-r1-distill-llama-70b" },
     { id: "qwen-2.5-32b", name: "qwen-2.5-32b" },
     { id: "gemma2-9b-it", name: "gemma2-9b-it" },
   ]);
@@ -49,17 +46,11 @@ function PDFRagApp(props) {
     if (storedToken) {
       fetchUserInfo(storedToken);
       fetchDocuments(storedToken);
+      fetchUserChats(storedToken);
     } else {
-      // If no token found, attempt to fetch without authorization
       fetchDocuments();
     }
   }, []);
-
-  useEffect(() => {
-    if (user && user._id) {
-      fetchUserChats();
-    }
-  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,7 +65,6 @@ function PDFRagApp(props) {
     const filtered = messages.filter((msg) =>
       msg.content.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
     setFilteredMessages(filtered);
   }, [searchQuery, messages]);
 
@@ -97,12 +87,7 @@ function PDFRagApp(props) {
 
   const fetchDocuments = async (authToken = null) => {
     try {
-      const headers = authToken
-        ? {
-            Authorization: `Bearer ${authToken}`,
-          }
-        : {};
-
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
       const response = await fetch("/api/documents", { headers });
       const data = await response.json();
       setDocuments(data);
@@ -111,13 +96,13 @@ function PDFRagApp(props) {
     }
   };
 
-  const fetchUserChats = async () => {
-    if (!user || !user._id) return;
+  const fetchUserChats = async (authToken = null) => {
+    if (!authToken) return;
 
     try {
-      const response = await fetch(`/api/chats/user/${user._id}`, {
+      const response = await fetch("/api/chats", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
@@ -127,6 +112,105 @@ function PDFRagApp(props) {
       }
     } catch (error) {
       console.error("Failed to fetch user chats:", error);
+    }
+  };
+
+  const createNewChat = async () => {
+    if (!token || !user) {
+      // If not authenticated, just clear the current chat
+      setMessages([]);
+      setActiveChatId(null);
+      setActiveChatTitle("New Chat");
+      // Don't clear document selection - keep it for the new chat
+      return;
+    }
+
+    try {
+      console.log("Creating new chat...");
+      const response = await fetch("/api/chats", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          documentId: selectedDocId || null,
+          title: selectedDocId ? `Chat about ${selectedDocName}` : "New Chat",
+          model: selectedModel,
+        }),
+      });
+
+      if (response.ok) {
+        const newChat = await response.json();
+        console.log("New chat created successfully:", newChat);
+        setActiveChatId(newChat._id);
+        setActiveChatTitle(newChat.title);
+        setMessages([]);
+        fetchUserChats(token);
+      } else {
+        console.error("Failed to create chat:", await response.text());
+      }
+    } catch (error) {
+      console.error("Failed to create new chat:", error);
+    }
+  };
+
+  const loadChat = async (chatId) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/chats/${chatId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const chat = await response.json();
+        setActiveChatId(chat._id);
+        setActiveChatTitle(chat.title);
+        
+        // Set document if chat has one
+        if (chat.documentId) {
+          setSelectedDocId(chat.documentId._id);
+          setSelectedDocName(chat.documentId.title);
+        }
+        
+        // Set model
+        if (chat.model) {
+          setSelectedModel(chat.model);
+        }
+
+        // Load messages
+        setMessages(chat.messages || []);
+      }
+    } catch (error) {
+      console.error("Failed to load chat:", error);
+    }
+  };
+
+  const deleteChat = async (chatId) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/chats/${chatId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // If deleted chat was active, create new chat
+        if (chatId === activeChatId) {
+          setActiveChatId(null);
+          setActiveChatTitle("New Chat");
+          setMessages([]);
+        }
+        fetchUserChats(token);
+      }
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
     }
   };
 
@@ -151,12 +235,7 @@ function PDFRagApp(props) {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Include authorization token with upload if available
-      const headers = token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : {};
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -174,13 +253,10 @@ function PDFRagApp(props) {
         const systemMessage = {
           type: "system",
           content: `Document "${file.name}" was uploaded and processed successfully!`,
+          id: Date.now(),
         };
 
         setMessages([...messages, systemMessage]);
-
-        if (activeChatId && selectedDocId) {
-          await saveMessageToChat(systemMessage);
-        }
       } else {
         setUploadStatus("Error: " + result.error);
       }
@@ -199,7 +275,24 @@ function PDFRagApp(props) {
       setSelectedDocId(docId);
       setSelectedDocName(selectedDoc.title);
 
-      await createNewChat(docId, selectedDoc.title);
+      // Update current chat's document if we have an active chat
+      if (activeChatId && token) {
+        try {
+          await fetch(`/api/chats/${activeChatId}/title`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              title: `Chat about ${selectedDoc.title}`,
+            }),
+          });
+          setActiveChatTitle(`Chat about ${selectedDoc.title}`);
+        } catch (error) {
+          console.error("Failed to update chat title:", error);
+        }
+      }
     } else {
       setSelectedDocId("");
       setSelectedDocName("None");
@@ -210,143 +303,17 @@ function PDFRagApp(props) {
     setSelectedModel(e.target.value);
   };
 
-  const createNewChat = async (documentId, documentName) => {
-    if (!token) {
-      // Handle case where user is not authenticated
-      setMessages([
-        {
-          type: "system",
-          content: `You selected document: "${documentName}"`,
-        },
-      ]);
-      return;
-    }
-
-    if (!user || !user._id) return;
-    if (!documentId || !documentName) return;
-
-    setMessages([]);
-
-    const systemMessage = {
-      type: "system",
-      content: `You selected document: "${documentName}"`,
-    };
-
-    setMessages([systemMessage]);
-
-    try {
-      const response = await fetch("/api/chats", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: user._id,
-          documentId: documentId,
-          title: `Chat about ${documentName}`,
-          message: systemMessage,
-          model: selectedModel, // Changed from modelId to model
-        }),
-      });
-
-      if (response.ok) {
-        const newChat = await response.json();
-        setActiveChatId(newChat._id);
-        setActiveChatTitle(newChat.title);
-
-        fetchUserChats();
-      }
-    } catch (error) {
-      console.error("Failed to create new chat:", error);
-    }
-  };
-
-  const loadChat = async (chatId) => {
-    try {
-      const response = await fetch(`/api/chats/${chatId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const chat = await response.json();
-        setActiveChatId(chat._id);
-        setActiveChatTitle(chat.title);
-        setSelectedDocId(chat.documentId._id);
-        setSelectedDocName(chat.documentId.title);
-        setMessages(chat.messages);
-
-        // If the chat has a model, update the selected model
-        if (chat.model) {
-          setSelectedModel(chat.model);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load chat:", error);
-    }
-  };
-
-  const deleteSelectedChat = async () => {
-    if (!activeChatId) return;
-
-    try {
-      const response = await fetch(`/api/chats/${activeChatId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        setActiveChatId(null);
-        setActiveChatTitle("New Chat");
-        setMessages([]);
-
-        fetchUserChats();
-      }
-    } catch (error) {
-      console.error("Failed to delete chat:", error);
-    }
-  };
-
-  const saveMessageToChat = async (newMessage) => {
-    if (!user || !user._id || !activeChatId || !token) return;
-
-    try {
-      await fetch("/api/chats", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          chatId: activeChatId,
-          userId: user._id,
-          documentId: selectedDocId,
-          message: newMessage,
-          model: selectedModel, // Changed from modelId to model
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to save message:", error);
-    }
-  };
-
   const handleMessageSubmit = async (e) => {
     e.preventDefault();
 
-    if (!message.trim()) {
-      return;
-    }
+    if (!message.trim()) return;
 
     if (!selectedDocId) {
       const systemMessage = {
         type: "system",
         content: "Please select a document first.",
+        id: Date.now(),
       };
-
       setMessages([...messages, systemMessage]);
       return;
     }
@@ -354,42 +321,64 @@ function PDFRagApp(props) {
     const userMessage = { type: "user", content: message, id: Date.now() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
+    
+    const currentMessage = message;
     setMessage("");
+    setIsLoading(true);
 
-    if (activeChatId && token) {
-      await saveMessageToChat(userMessage);
-    } else if (user && user._id && token) {
+    let currentChatId = activeChatId;
+
+    // Create new chat if none exists and user is authenticated
+    if (!currentChatId && token && user) {
+      console.log("Creating new chat for authenticated user...");
       try {
-        const response = await fetch("/api/chats", {
+        const createChatResponse = await fetch("/api/chats", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            userId: user._id,
             documentId: selectedDocId,
             title: `Chat about ${selectedDocName}`,
-            message: userMessage,
-            model: selectedModel, // Changed from modelId to model
+            model: selectedModel,
           }),
         });
 
-        if (response.ok) {
-          const newChat = await response.json();
+        if (createChatResponse.ok) {
+          const newChat = await createChatResponse.json();
+          currentChatId = newChat._id;
           setActiveChatId(newChat._id);
           setActiveChatTitle(newChat.title);
-          fetchUserChats();
+          console.log("New chat created with ID:", newChat._id);
+          
+          // Fetch updated chat list in the background
+          fetchUserChats(token);
+        } else {
+          console.error("Failed to create chat:", await createChatResponse.text());
+          const errorMessage = {
+            type: "system",
+            content: "Failed to create chat. Messages won't be saved.",
+            id: Date.now(),
+          };
+          setMessages([...updatedMessages, errorMessage]);
+          setIsLoading(false);
+          return;
         }
       } catch (error) {
         console.error("Failed to create new chat:", error);
+        const errorMessage = {
+          type: "system",
+          content: "Error creating chat: " + error.message,
+          id: Date.now(),
+        };
+        setMessages([...updatedMessages, errorMessage]);
+        setIsLoading(false);
+        return;
       }
     }
 
-    setIsLoading(true);
-
     try {
-      // Include authorization token with query request
       const headers = {
         "Content-Type": "application/json",
       };
@@ -398,21 +387,37 @@ function PDFRagApp(props) {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
+      const requestBody = {
+        documentId: selectedDocId,
+        query: currentMessage,
+        model: selectedModel,
+      };
+
+      // Include chatId if we have one (either existing or newly created)
+      if (currentChatId) {
+        requestBody.chatId = currentChatId;
+        console.log("Sending request with chatId:", currentChatId);
+      } else {
+        console.log("No chatId available, sending without it");
+      }
+
+      // Remove undefined values from requestBody
+      Object.keys(requestBody).forEach(key => {
+        if (requestBody[key] === undefined) {
+          delete requestBody[key];
+        }
+      });
+
+      console.log("Final request body being sent:", requestBody);
+
       const response = await fetch("/api/query", {
         method: "POST",
         headers,
-        body: JSON.stringify({
-          documentId: selectedDocId,
-          query: message,
-          model: selectedModel, // Changed from userSelectedModel to model
-          spaceId: activeChatId, // Include spaceId if it's needed by the backend
-        }),
+        body: JSON.stringify(requestBody),
       });
-      console.log("Model Selected by User: ", selectedModel);
-      console.log("Model selectedDocId: ", selectedDocId);
-      console.log("message: ", message);
+
       const result = await response.json();
-      console.log("Result from Backend: ", result)
+
       if (response.ok) {
         const botMessage = {
           type: "bot",
@@ -420,23 +425,13 @@ function PDFRagApp(props) {
           id: Date.now(),
         };
         setMessages([...updatedMessages, botMessage]);
-
-        if (activeChatId && token) {
-          await saveMessageToChat(botMessage);
-        }
       } else {
         const errorMessage = {
           type: "system",
-          content:
-            "Error: " +
-            (result.error || "Access denied. Please ensure you are logged in."),
+          content: "Error: " + (result.error || "Failed to get response"),
           id: Date.now(),
         };
         setMessages([...updatedMessages, errorMessage]);
-
-        if (activeChatId && token) {
-          await saveMessageToChat(errorMessage);
-        }
       }
     } catch (error) {
       const errorMessage = {
@@ -445,10 +440,6 @@ function PDFRagApp(props) {
         id: Date.now(),
       };
       setMessages([...updatedMessages, errorMessage]);
-
-      if (activeChatId && token) {
-        await saveMessageToChat(errorMessage);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -461,10 +452,7 @@ function PDFRagApp(props) {
   const copyMessageToClipboard = (messageId, content) => {
     navigator.clipboard.writeText(content);
     setCopiedMessageId(messageId);
-
-    setTimeout(() => {
-      setCopiedMessageId(null);
-    }, 2000);
+    setTimeout(() => setCopiedMessageId(null), 2000);
   };
 
   const toggleSearch = () => {
@@ -482,12 +470,14 @@ function PDFRagApp(props) {
         {/* Sidebar */}
         <div className="w-72 bg-gray-800 p-5 flex flex-col gap-5 border-r border-gray-700">
           <h2 className="text-lg text-gray-300">My Documents</h2>
+          
           <Link
-            className="border-2 border-white text-center rounded-xl "
+            className="border-2 border-white text-center rounded-xl py-2 hover:bg-gray-700 transition-colors"
             to="/spaces"
           >
-            Spaces
+            Collaborative Spaces
           </Link>
+
           <select
             className="p-2 bg-gray-700 rounded-lg text-white w-full"
             value={selectedDocId}
@@ -503,11 +493,11 @@ function PDFRagApp(props) {
             ))}
           </select>
 
-          {/* Model Selection Dropdown */}
+          {/* Model Selection */}
           <div>
-            <h2 className="text-lg text-gray-300 mb-2">Model</h2>
+            <h3 className="text-sm text-gray-300 mb-2">AI Model</h3>
             <select
-              className="p-2 bg-gray-700 rounded-lg text-white w-full"
+              className="p-2 bg-gray-700 rounded-lg text-white w-full text-sm"
               value={selectedModel}
               onChange={handleModelSelect}
             >
@@ -519,14 +509,13 @@ function PDFRagApp(props) {
             </select>
           </div>
 
+          {/* Chat History Section */}
           <div className="flex justify-between items-center">
-            <h2 className="text-lg text-gray-300">Chat History</h2>
+            <h3 className="text-lg text-gray-300">Chat History</h3>
             <button
-              onClick={() =>
-                selectedDocId && createNewChat(selectedDocId, selectedDocName)
-              }
-              className="p-1 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-              disabled={!selectedDocId}
+              onClick={createNewChat}
+              className="p-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              title="New Chat"
             >
               <Plus size={16} />
             </button>
@@ -539,23 +528,28 @@ function PDFRagApp(props) {
               chats.map((chat) => (
                 <div
                   key={chat._id}
-                  className={`p-3 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors flex items-center justify-between ${
+                  className={`p-3 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors group ${
                     chat._id === activeChatId ? "bg-gray-600" : "bg-gray-700"
                   }`}
                   onClick={() => loadChat(chat._id)}
                 >
-                  <div className="truncate flex-1">{chat.title}</div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (chat._id === activeChatId) {
-                        deleteSelectedChat();
-                      }
-                    }}
-                    className="text-gray-400 hover:text-red-400 ml-2"
-                  >
-                    ×
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <div className="truncate flex-1 text-sm">
+                      {chat.title}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteChat(chat._id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 ml-2 transition-opacity"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {new Date(chat.lastMessageAt).toLocaleDateString()}
+                  </div>
                 </div>
               ))
             )}
@@ -564,7 +558,21 @@ function PDFRagApp(props) {
           {!token && (
             <div className="bg-yellow-800 p-3 rounded-lg text-yellow-200 text-sm">
               <p className="font-bold">Not logged in</p>
-              <p>Some features may be limited without authentication</p>
+              <p>Chat history won't be saved</p>
+              <div className="flex gap-2 mt-2">
+                <Link 
+                  to="/login" 
+                  className="text-blue-300 hover:text-blue-200 underline"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="text-blue-300 hover:text-blue-200 underline"
+                >
+                  Sign Up
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -572,10 +580,10 @@ function PDFRagApp(props) {
         {/* Main Content */}
         <div className="flex-1 flex flex-col bg-gray-900">
           {/* Header */}
-          <header className="p-5 bg-gray-800 flex justify-between items-center">
+          <header className="p-5 bg-gray-800 flex justify-between items-center border-b border-gray-700">
             <div className="flex gap-4 items-center">
               <h1 className="text-2xl font-bold">
-                {activeChatId ? activeChatTitle : "RAG Chat"}
+                {activeChatTitle}
               </h1>
               {selectedDocId && (
                 <div className="flex gap-2">
@@ -606,14 +614,14 @@ function PDFRagApp(props) {
               />
               <label
                 htmlFor="pdfFile"
-                className="py-2 px-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                className="py-2 px-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm"
               >
                 Select PDF
               </label>
               <button
                 type="submit"
                 disabled={isLoading || !file}
-                className="py-2 px-4 bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="py-2 px-4 bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 Upload & Process
               </button>
@@ -643,8 +651,13 @@ function PDFRagApp(props) {
               )}
 
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                {(showSearch ? filteredMessages : messages).map(
-                  (msg, index) => (
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-400 mt-10">
+                    <h3 className="text-xl mb-2">Welcome to PDF RAG Chat!</h3>
+                    <p>Select a document and start asking questions</p>
+                  </div>
+                ) : (
+                  (showSearch ? filteredMessages : messages).map((msg, index) => (
                     <div
                       key={msg.id || index}
                       className={`p-4 rounded-lg max-w-3xl ${
@@ -666,10 +679,7 @@ function PDFRagApp(props) {
                         {msg.type !== "system" && (
                           <button
                             onClick={() =>
-                              copyMessageToClipboard(
-                                msg.id || index,
-                                msg.content
-                              )
+                              copyMessageToClipboard(msg.id || index, msg.content)
                             }
                             className="text-gray-400 hover:text-white"
                           >
@@ -687,7 +697,7 @@ function PDFRagApp(props) {
                         <div>{msg.content}</div>
                       )}
                     </div>
-                  )
+                  ))
                 )}
                 <div ref={messagesEndRef} />
 

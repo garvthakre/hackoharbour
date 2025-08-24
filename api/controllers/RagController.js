@@ -1,4 +1,4 @@
-// controllers/chatController.js - Updated for individual chats
+ 
 import Chat from '../models/Chat.js';
 import ChatMessage from '../models/chatMessage.js';
 
@@ -138,32 +138,5 @@ export const getChatHistory = async (req, res) => {
   } catch (error) {
     console.error('Error fetching chat history:', error);
     res.status(500).json({ error: 'Failed to fetch chat history' });
-  }
-};
-
- export const updateChat = async (req, res, next) => {
-  try {
-    const { chatId } = req.params;
-    const { title } = req.body;
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'User authentication required' });
-    }
-
-    const chat = await Chat.findOneAndUpdate(
-      { _id: chatId, userId },
-      { title, lastMessageAt: new Date() },
-      { new: true }
-    );
-
-    if (!chat) {
-      return res.status(404).json({ error: 'Chat not found' });
-    }
-
-    res.status(200).json(chat);
-  } catch (error) {
-    console.error('Error updating chat title:', error);
-    next(error);
   }
 };
