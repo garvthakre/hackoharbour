@@ -1,4 +1,3 @@
- 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Share2, Users, FileText, MessageSquare, Loader2 } from 'lucide-react';
@@ -57,87 +56,90 @@ const CollaborativeWorkspace = () => {
     }
   };
 
-// Add these debug functions to your CollaborativeWorkspace.jsx
-
-const fetchChatHistory = async () => {
-  console.log('Fetching chat history for spaceId:', spaceId);
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`/api/chat/${spaceId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+  const fetchChatHistory = async () => {
+    console.log('Fetching chat history for spaceId:', spaceId);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/chat/${spaceId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('Chat history response status:', res.status);
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Chat history data:', data);
+        
+        // Handle both possible response structures
+        const messages = data.messages || data || [];
+        console.log('Processed messages:', messages);
+        setChatHistory(messages);
+      } else {
+        const errorData = await res.json();
+        console.error('Failed to fetch chat history:', errorData);
       }
-    });
-    
-    console.log('Chat history response status:', res.status);
-    
-    if (res.ok) {
-      const data = await res.json();
-      console.log('Chat history data:', data);
-      setChatHistory(data.messages);
-    } else {
-      const errorData = await res.json();
-      console.error('Failed to fetch chat history:', errorData);
+    } catch (err) {
+      console.error('Error fetching chat history:', err);
     }
-  } catch (err) {
-    console.error('Error fetching chat history:', err);
-  }
-};
+  };
 
-const handleSubmitQuery = async (e) => {
-  e.preventDefault();
-  if (!query.trim()) return;
-  
-  console.log('Submitting query:', {
-    documentId: space.documentId._id,
-    query: query,
-    spaceId: spaceId,
-    model: "llama3-70b-8192"
-  });
-  
-  setQueryLoading(true);
-  
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/query', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'Cache-Control': 'no-cache',
-      },
-      body: JSON.stringify({
-        documentId: space.documentId._id,
-        query: query,
-        spaceId: spaceId,
-        model: "llama3-70b-8192"
-      })
+  const handleSubmitQuery = async (e) => {
+    e.preventDefault();
+    if (!query.trim() || !space?.documentId?._id) return;
+    
+    console.log('Submitting query:', {
+      documentId: space.documentId._id,
+      query: query,
+      spaceId: spaceId,
+      model: "llama3-70b-8192"
     });
     
-    console.log('Query response status:', res.status);
-    const data = await res.json();
-    console.log('Query response data:', data);
+    setQueryLoading(true);
     
-    if (res.ok) {
-      // Add a small delay before fetching chat history
-      setTimeout(async () => {
-        await fetchChatHistory();
-        setQuery(''); // Clear input
-      }, 500);
-    } else {
-      console.error('Query failed:', data);
-      setError(data.error || 'Failed to get answer');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify({
+          documentId: space.documentId._id,
+          query: query,
+          spaceId: spaceId,
+          model: "llama3-70b-8192"
+        })
+      });
+      
+      console.log('Query response status:', res.status);
+      const data = await res.json();
+      console.log('Query response data:', data);
+      
+      if (res.ok) {
+        // Add a small delay before fetching chat history
+        setTimeout(async () => {
+          await fetchChatHistory();
+          setQuery(''); // Clear input
+        }, 500);
+      } else {
+        console.error('Query failed:', data);
+        setError(data.error || 'Failed to get answer');
+      }
+    } catch (err) {
+      console.error('Query error:', err);
+      setError('Connection error. Please try again later.');
+    } finally {
+      setQueryLoading(false);
     }
-  } catch (err) {
-    console.error('Query error:', err);
-    setError('Connection error. Please try again later.');
-  } finally {
-    setQueryLoading(false);
-  }
-};
+  };
+
   // Share space with others
   const shareSpace = () => {
-    if (space) {
+    if (space?.accessToken) {
       navigator.clipboard.writeText(space.accessToken);
       alert('Access token copied to clipboard! Share this with collaborators.');
     }
@@ -193,12 +195,12 @@ const handleSubmitQuery = async (e) => {
               <div className="flex flex-wrap items-center mt-4 gap-4 md:gap-6">
                 <div className="flex items-center text-sm text-gray-600">
                   <FileText className="h-4 w-4 mr-1 text-amber-600" />
-                  <span>{space.documentId.title || space.documentId.filename}</span>
+                  <span>{space.documentId?.title || space.documentId?.filename || 'Document'}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
                   <Users className="h-4 w-4 mr-1 text-green-600" />
-                  <span>{space.members.length} collaborators</span>
+                  <span>{space?.members?.length || 0} collaborators</span>
                 </div>
               </div>
             </div>
@@ -219,6 +221,7 @@ const handleSubmitQuery = async (e) => {
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border-2 border-amber-600 p-4 md:p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">Document Q&A</h2>
+              <span className="text-sm text-gray-500">Messages: {chatHistory.length}</span>
             </div>
             
             {/* Chat history */}
@@ -234,26 +237,34 @@ const handleSubmitQuery = async (e) => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {chatHistory.map((message) => (
-                    <div 
-                      key={message.id}
-                      className={`rounded-lg p-3 max-w-[80%] ${
-                        message.type === 'question' 
-                          ? 'bg-green-100 border-2 border-green-600 ml-auto' 
-                          : 'bg-amber-100 border-2 border-amber-600'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="text-xs font-medium text-gray-800">
-                          {message.type === 'question' ? (message.user ? message.user.name : 'You') : 'AI Assistant'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(message.timestamp).toLocaleTimeString()}
-                        </span>
+                  {chatHistory.map((message) => {
+                    console.log('Rendering message:', message); // Debug log
+                    return (
+                      <div 
+                        key={message._id || message.id} // Use _id first, fallback to id
+                        className={`rounded-lg p-3 max-w-[80%] ${
+                          message.type === 'question' 
+                            ? 'bg-green-100 border-2 border-green-600 ml-auto' 
+                            : 'bg-amber-100 border-2 border-amber-600'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-xs font-medium text-gray-800">
+                            {message.type === 'question' 
+                              ? (message.userId?.name || message.user?.name || 'You') 
+                              : 'AI Assistant'
+                            }
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {message.timestamp ? new Date(message.timestamp).toLocaleTimeString() : 'Now'}
+                          </span>
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap text-gray-800">
+                          {message.content || 'No content'}
+                        </div>
                       </div>
-                      <div className="text-sm whitespace-pre-wrap text-gray-800">{message.content}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -281,22 +292,26 @@ const handleSubmitQuery = async (e) => {
           <div className="bg-white rounded-lg shadow-sm border-2 border-green-600 p-4 md:p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">Collaborators</h2>
             <div className="space-y-3">
-              {space.members.map((member, index) => (
-                <div key={index} className="flex items-center p-2 rounded hover:bg-gray-50 border border-gray-100">
-                  <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mr-3 border border-amber-300">
-                    {member.name ? member.name.charAt(0).toUpperCase() : 'U'}
+              {space?.members && space.members.length > 0 ? (
+                space.members.map((member, index) => (
+                  <div key={member._id || index} className="flex items-center p-2 rounded hover:bg-gray-50 border border-gray-100">
+                    <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mr-3 border border-amber-300">
+                      {member?.name ? member.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{member?.name || 'User'}</p>
+                      <p className="text-xs text-gray-500">{member?.email || ''}</p>
+                    </div>
+                    {space.createdBy && member?._id === space.createdBy._id && (
+                      <span className="ml-auto text-xs bg-green-100 text-green-800 px-2 py-1 rounded border border-green-300">
+                        Creator
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{member.name || 'User'}</p>
-                    <p className="text-xs text-gray-500">{member.email || ''}</p>
-                  </div>
-                  {member._id === space.createdBy._id && (
-                    <span className="ml-auto text-xs bg-green-100 text-green-800 px-2 py-1 rounded border border-green-300">
-                      Creator
-                    </span>
-                  )}
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500">No collaborators yet</p>
+              )}
             </div>
           </div>
         </div>
