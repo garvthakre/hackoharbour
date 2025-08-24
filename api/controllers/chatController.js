@@ -1,29 +1,58 @@
-// controllers/chatController.js - Updated for individual chats
+ 
 import Chat from '../models/Chat.js';
 import ChatMessage from '../models/chatMessage.js';
 
-// Create a new chat
+ 
 export const createChat = async (req, res) => {
   try {
+    console.log(' CREATE CHAT REQUEST');
+    console.log(' Request body:', req.body);
+    console.log(' User from middleware:', req.user);
+    
     const { documentId, title, model } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
-    const newChat = await Chat.create({
+    if (!userId) {
+      console.log(' No userId found in request');
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    console.log(' Creating chat for user:', userId);
+    console.log(' Document ID:', documentId);
+    console.log(' Title:', title);
+    console.log(' Model:', model);
+
+    const chatData = {
       userId,
-      documentId,
       title: title || `Chat ${new Date().toLocaleString()}`,
       model: model || 'llama3-70b-8192'
-    });
+    };
 
-    await newChat.populate('documentId', 'title filename');
+    // Only add documentId if it exists and is not null
+    if (documentId) {
+      chatData.documentId = documentId;
+    }
 
+    console.log(' Final chat data to save:', chatData);
+
+    const newChat = await Chat.create(chatData);
+    console.log(' Chat created in DB:', newChat._id);
+
+    // Populate if documentId exists
+    if (newChat.documentId) {
+      await newChat.populate('documentId', 'title filename');
+      console.log(' Populated document info');
+    }
+
+    console.log(' Sending response:', newChat);
     res.status(201).json(newChat);
+    
   } catch (error) {
-    console.error('Error creating chat:', error);
-    res.status(500).json({ error: 'Failed to create chat' });
+    console.error(' Error creating chat:', error);
+    console.error(' Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to create chat: ' + error.message });
   }
 };
-
 // Get user's chats
 export const getUserChats = async (req, res) => {
   try {
