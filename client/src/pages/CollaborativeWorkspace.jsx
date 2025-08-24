@@ -57,68 +57,84 @@ const CollaborativeWorkspace = () => {
     }
   };
 
-  const fetchChatHistory = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/chat/${spaceId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setChatHistory(data.messages);
-      } else {
-        console.error('Failed to fetch chat history');
-      }
-    } catch (err) {
-      console.error('Error fetching chat history:', err);
-    }
-  };
+// Add these debug functions to your CollaborativeWorkspace.jsx
 
-  const handleSubmitQuery = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+const fetchChatHistory = async () => {
+  console.log('Fetching chat history for spaceId:', spaceId);
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/chat/${spaceId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
-    setQueryLoading(true);
+    console.log('Chat history response status:', res.status);
     
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-            'Cache-Control': 'no-cache',
-        },
-        body: JSON.stringify({
-          documentId: space.documentId._id,
-          query: query,
-          spaceId: spaceId ,
-          model: "llama3-70b-8192"// Include spaceId to track conversation in the space
-        })
-      });
-      
-     console.log('Response status:', res.status);
+    if (res.ok) {
       const data = await res.json();
-      console.log('Response data:', data);
-   
-      
-      if (res.ok) {
-        // Fetch updated chat history after submitting a query
+      console.log('Chat history data:', data);
+      setChatHistory(data.messages);
+    } else {
+      const errorData = await res.json();
+      console.error('Failed to fetch chat history:', errorData);
+    }
+  } catch (err) {
+    console.error('Error fetching chat history:', err);
+  }
+};
+
+const handleSubmitQuery = async (e) => {
+  e.preventDefault();
+  if (!query.trim()) return;
+  
+  console.log('Submitting query:', {
+    documentId: space.documentId._id,
+    query: query,
+    spaceId: spaceId,
+    model: "llama3-70b-8192"
+  });
+  
+  setQueryLoading(true);
+  
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Cache-Control': 'no-cache',
+      },
+      body: JSON.stringify({
+        documentId: space.documentId._id,
+        query: query,
+        spaceId: spaceId,
+        model: "llama3-70b-8192"
+      })
+    });
+    
+    console.log('Query response status:', res.status);
+    const data = await res.json();
+    console.log('Query response data:', data);
+    
+    if (res.ok) {
+      // Add a small delay before fetching chat history
+      setTimeout(async () => {
         await fetchChatHistory();
         setQuery(''); // Clear input
-      } else {
-        setError(data.error || 'Failed to get answer');
-      }
-    } catch (err) {
-      setError('Connection error. Please try again later.');
-    } finally {
-      setQueryLoading(false);
+      }, 500);
+    } else {
+      console.error('Query failed:', data);
+      setError(data.error || 'Failed to get answer');
     }
-  };
-
+  } catch (err) {
+    console.error('Query error:', err);
+    setError('Connection error. Please try again later.');
+  } finally {
+    setQueryLoading(false);
+  }
+};
   // Share space with others
   const shareSpace = () => {
     if (space) {

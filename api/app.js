@@ -9,6 +9,7 @@ import indexRoute from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
 import spaceRoutes from './routes/spaceRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import queryRoutes from './routes/queryRoutes.js'; // Add this import
 // ...
  
 // Connect to MongoDB
@@ -18,9 +19,11 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Routes
 app.use('/api/spaces', spaceRoutes);
 app.use('/api/chat', chatRoutes);
-// Routes
+app.use('/api', queryRoutes); // Add this line for query routes
 app.use('/api', apiRoutes);
 app.use('/', indexRoute);
 
