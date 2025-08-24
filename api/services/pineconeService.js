@@ -31,8 +31,9 @@ const processPdf = async (filePath, filename) => {
     const index = await initPinecone();
     
     console.log(`Processing ${splitDocs.length} chunks with Hugging Face embeddings`);
-    
+    // npm install @huggingface/inference@latest
     // Use Langchain's built-in vector store creation which handles batching
+    console.log("Going to Vector Store")
     const vectorStore = await PineconeStore.fromDocuments(
       splitDocs,
       embeddings,
@@ -42,7 +43,8 @@ const processPdf = async (filePath, filename) => {
         maxConcurrency: 5, // Limit concurrent requests
       }
     );
-    
+        console.log("Vector Store Done")
+
     console.log(`Successfully processed ${splitDocs.length} chunks with Hugging Face embeddings`);
     
     // Save document metadata in MongoDB

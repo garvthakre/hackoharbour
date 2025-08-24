@@ -1,3 +1,4 @@
+ 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Share2, Users, FileText, MessageSquare, Loader2 } from 'lucide-react';
@@ -88,16 +89,21 @@ const CollaborativeWorkspace = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache',
         },
         body: JSON.stringify({
           documentId: space.documentId._id,
           query: query,
-          spaceId: spaceId // Include spaceId to track conversation in the space
+          spaceId: spaceId ,
+          model: "llama3-70b-8192"// Include spaceId to track conversation in the space
         })
       });
       
+     console.log('Response status:', res.status);
       const data = await res.json();
+      console.log('Response data:', data);
+   
       
       if (res.ok) {
         // Fetch updated chat history after submitting a query

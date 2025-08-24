@@ -33,11 +33,27 @@ export const saveMessage = async (req, res) => {
     res.status(201).json({ 
       message: 'Message saved successfully',
       data: {
-        id: populatedMessage._id,
-        type: populatedMessage.type,
-        content: populatedMessage.content,
-        timestamp: populatedMessage.timestamp,
-        user: populatedMessage.userId
+        chatMessage: {
+          id: populatedMessage._id,
+          type: populatedMessage.type,
+          content: populatedMessage.content,
+          timestamp: populatedMessage.timestamp,
+          user: populatedMessage.userId
+        },
+        user: {
+          id: req.user.id,
+          name: req.user.name,
+          email: req.user.email
+        },
+        space: {
+          id: space._id,
+          name: space.name,
+          members: space.members.map(m => ({
+            id: m._id,
+            name: m.name,
+            email: m.email
+          }))
+        }
       }
     });
   } catch (error) {
@@ -45,7 +61,6 @@ export const saveMessage = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-
 // Get chat history for a specific space
 export const getChatHistory = async (req, res) => {
   try {

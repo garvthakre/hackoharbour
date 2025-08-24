@@ -409,7 +409,10 @@ function PDFRagApp(props) {
         }),
       });
       console.log("Model Selected by User: ", selectedModel);
+      console.log("Model selectedDocId: ", selectedDocId);
+      console.log("message: ", message);
       const result = await response.json();
+      console.log("Result from Backend: ", result)
       if (response.ok) {
         const botMessage = {
           type: "bot",

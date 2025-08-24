@@ -39,6 +39,6 @@ router.get('/documents', getAllDocuments);
  router.post('/signup', signup);
  router.post('/login', login);
 // Query route
-router.post('/query', protect, queryDocument);
+router.post('/query', queryDocument);
 
 export default router;

@@ -8,10 +8,8 @@ import ChatMessage from "../models/chatMessage.js";
 const queryDocument = async (req, res, next) => {
   try {
     const { documentId, query, spaceId, model } = req.body;
-    console.log(documentId);
-    console.log(model);
-    const userId = req.user.id;
-
+    const userId = req.user?.id; // Get user ID from auth middleware
+    const selectedModel = model || "llama3-70b-8192"; 
     if (!documentId || !query) {
       return res
         .status(400)
@@ -19,7 +17,7 @@ const queryDocument = async (req, res, next) => {
     }
 
     // Save the user's question to chat history if spaceId is provided
-    if (spaceId) {
+    if (spaceId && userId) {
       await ChatMessage.create({
         spaceId,
         userId,
@@ -31,10 +29,10 @@ const queryDocument = async (req, res, next) => {
     // Get the vector store for the document
     const { vectorStore, document } = await queryPinecone(documentId, query);
 
-    // Initialize Groq client
+    // Initialize Groq client with env variable
     const groq = new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
-      modelName: model, // Or any other model offered by Groq
+      modelName: selectedModel,
     });
 
     // Create a retrieval chain
@@ -46,10 +44,10 @@ const queryDocument = async (req, res, next) => {
     });
 
     // Save the AI's answer to chat history if spaceId is provided
-    if (spaceId) {
+    if (spaceId && userId) {
       await ChatMessage.create({
         spaceId,
-        userId, // Using the same userId to track who initiated the conversation
+        userId,
         type: "answer",
         content: response.text,
       });

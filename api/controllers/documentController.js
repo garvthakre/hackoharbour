@@ -12,6 +12,7 @@ const uploadDocument = async (req, res, next) => {
     const document = await processPdf(req.file.path, req.file.originalname);
     res.status(200).json({ message: 'Document uploaded and processed', document });
     
+    console.log("Got Docu", document);
   } catch (error) {
     next(error);
   }

@@ -5,7 +5,7 @@ import { protect } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 // All routes require authentication
-router.use(protect);
+ router.use(protect);
 
 // Get chat history for a space
 router.get('/:spaceId', getChatHistory);

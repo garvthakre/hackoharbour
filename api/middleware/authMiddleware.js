@@ -1,12 +1,14 @@
 import jwt from "jsonwebtoken";
 
 export const protect = (req, res, next) => {
-  // const token = req.header("Authorization");
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZGU4MzQ4M2U0NzBmOTJlMDI5YjU1NSIsImlhdCI6MTc0MjYzNTg0OCwiZXhwIjoxNzQyNjM5NDQ4fQ.PahiGe_kJ9w0TISJQ2d-T-9_dHZpqacyP5aQb9o7Z9Y";
+   const token = req.header("Authorization");
+  // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjhkMDY3ZGNjNjIxZDk3ODAxMDEwMCIsImlhdCI6MTc0NDM1OTUyNywiZXhwIjoxNzQ0MzYzMTI3fQ._ju2i6etp5snuQnAb7nHB4rJZ17rLq6BTJs_GtUEoJc";
+  console.log("Your Token: ")
   if (!token) return res.status(401).json({ error: "Access Denied" });
-
+  
   try {
     const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
+    console.log("Decoded: ",decoded)
     req.user = decoded;
     next();
   } catch (error) {
