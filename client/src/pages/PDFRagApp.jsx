@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { Search, Plus, Copy, Check, Trash2 } from "lucide-react";
 import { Link } from "react-router";
 
-function PDFRagApp(props) {
+function PDFRagApp() {
   const [documents, setDocuments] = useState([]);
   const [selectedDocId, setSelectedDocId] = useState("");
   const [selectedDocName, setSelectedDocName] = useState("None");
@@ -488,10 +488,6 @@ const createNewChat = async () => {
   }
 };
 
-  const togglePdfViewer = () => {
-    setShowPdfViewer(!showPdfViewer);
-  };
-
   const copyMessageToClipboard = (messageId, content) => {
     navigator.clipboard.writeText(content);
     setCopiedMessageId(messageId);
@@ -659,7 +655,7 @@ const createNewChat = async () => {
                 htmlFor="pdfFile"
                 className="py-2 px-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm"
               >
-                Select PDF
+                Select New PDF
               </label>
               <button
                 type="submit"
@@ -746,7 +742,7 @@ const createNewChat = async () => {
 
                 {isLoading && (
                   <div className="p-4 bg-gray-700 rounded-lg animate-pulse max-w-3xl">
-                    <p>AI is thinking...</p>
+                    <p>wait cooking...</p>
                   </div>
                 )}
               </div>

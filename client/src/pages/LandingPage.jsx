@@ -57,8 +57,8 @@ export default function HyperRAG() {
               <a href="#contact" onClick={(e) => handleSmoothScroll(e, '#contact')} className="text-slate-300 no-underline font-medium transition-colors hover:text-indigo-500">Contact</a>
             </div>
             <div className="hidden md:flex gap-4">
-              <a href="#" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all border border-indigo-500 text-indigo-500 bg-transparent hover:bg-indigo-500 hover:text-slate-50">Login</a>
-              <a href="#" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all bg-indigo-500 text-slate-50 border border-indigo-500 hover:bg-indigo-600 hover:border-indigo-600">Sign Up</a>
+              <a href="/login" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all border border-indigo-500 text-indigo-500 bg-transparent hover:bg-indigo-500 hover:text-slate-50">Login</a>
+              <a href="/signup" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all bg-indigo-500 text-slate-50 border border-indigo-500 hover:bg-indigo-600 hover:border-indigo-600">Sign Up</a>
             </div>
             <button 
               className="md:hidden bg-transparent border-none text-slate-50 text-2xl cursor-pointer"
@@ -95,8 +95,8 @@ export default function HyperRAG() {
           <a href="#contact" onClick={(e) => handleSmoothScroll(e, '#contact')} className="text-slate-50 no-underline text-xl font-medium">Contact</a>
         </div>
         <div className="flex flex-col gap-4 mt-8 w-4/5 max-w-[300px]">
-          <a href="#" className="w-full text-center px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all border border-indigo-500 text-indigo-500 bg-transparent hover:bg-indigo-500 hover:text-slate-50">Login</a>
-          <a href="#" className="w-full text-center px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all bg-indigo-500 text-slate-50 border border-indigo-500 hover:bg-indigo-600 hover:border-indigo-600">Sign Up</a>
+          <a href="/login" className="w-full text-center px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all border border-indigo-500 text-indigo-500 bg-transparent hover:bg-indigo-500 hover:text-slate-50">Login</a>
+          <a href="/signup" className="w-full text-center px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all bg-indigo-500 text-slate-50 border border-indigo-500 hover:bg-indigo-600 hover:border-indigo-600">Sign Up</a>
         </div>
       </div>
       
@@ -110,8 +110,8 @@ export default function HyperRAG() {
             KnowledgeRAG is a powerful platform that leverages advanced RAG technology to process, understand, and retrieve information from your documents with unprecedented accuracy and context awareness.
           </p>
           <div className="flex justify-center gap-4 mb-10 flex-wrap sm:flex-col sm:max-w-[300px] sm:mx-auto">
-            <a href="#" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all bg-indigo-500 text-slate-50 border border-indigo-500 hover:bg-indigo-600 hover:border-indigo-600 sm:w-full sm:text-center">Get Started Free</a>
-            <a href="#" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all border border-indigo-500 text-indigo-500 bg-transparent hover:bg-indigo-500 hover:text-slate-50 sm:w-full sm:text-center">See Demo</a>
+            <a href="/rag" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all bg-indigo-500 text-slate-50 border border-indigo-500 hover:bg-indigo-600 hover:border-indigo-600 sm:w-full sm:text-center">Get Started Free</a>
+            <a href="/rag" className="px-4 py-2 rounded-md font-medium no-underline cursor-pointer transition-all border border-indigo-500 text-indigo-500 bg-transparent hover:bg-indigo-500 hover:text-slate-50 sm:w-full sm:text-center">See Demo</a>
           </div>
         </div>
         <div className="hero-image">
