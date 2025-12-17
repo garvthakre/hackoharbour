@@ -50,7 +50,7 @@ const CollaborativeWorkspace = () => {
         }
       }
     } catch (err) {
-      setError('Connection error. Please try again later.');
+      setError('Connection error. Please try again later.', err);
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ const CollaborativeWorkspace = () => {
       documentId: space.documentId._id,
       query: query,
       spaceId: spaceId,
-      model: "llama3-70b-8192"
+      model: "llama-3.1-8b-instant" // or openai/gpt-oss-20b
     });
     
     setQueryLoading(true);
@@ -111,7 +111,7 @@ const CollaborativeWorkspace = () => {
           documentId: space.documentId._id,
           query: query,
           spaceId: spaceId,
-          model: "llama3-70b-8192"
+          model: "llama-3.1-8b-instant"
         })
       });
       

@@ -37,7 +37,7 @@ function PDFRagApp() {
   { id: "gemma2-9b-it", name: "Gemma2 9B IT" },
   { id: "moonshotai/kimi-k2-instruct", name: "Kimi K2 Instruct" },
   ]);
-  const [selectedModel, setSelectedModel] = useState("llama3-70b-8192");
+  const [selectedModel, setSelectedModel] = useState("llama-3.1-8b-instant");
 
   const messagesEndRef = useRef(null);
 

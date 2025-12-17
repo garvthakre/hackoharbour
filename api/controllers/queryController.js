@@ -11,7 +11,7 @@ const queryDocument = async (req, res, next) => {
   try {
     const { documentId, query, spaceId, model, chatId } = req.body;
     const userId = req.user?.id;
-    const selectedModel = model || "llama3-70b-8192";
+    const selectedModel = model || "llama-3.1-8b-instant";
     
     console.log('=== QUERY DEBUG START ===');
     console.log('Request body:', { documentId, query, spaceId, model, chatId });

@@ -25,7 +25,7 @@ export const createChat = async (req, res) => {
     const chatData = {
       userId,
       title: title || `Chat ${new Date().toLocaleString()}`,
-      model: model || 'llama3-70b-8192'
+      model: model || 'llama-3.1-8b-instant'
     };
 
     // Only add documentId if it exists and is not null

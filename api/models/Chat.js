@@ -19,7 +19,7 @@ const chatSchema = new mongoose.Schema({
   },
   model: {
     type: String,
-    default: 'llama3-70b-8192'
+    default: 'llama-3.1-8b-instant'
   },
   isActive: {
     type: Boolean,
