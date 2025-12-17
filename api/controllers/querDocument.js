@@ -54,7 +54,7 @@ export const queryDocument = async (req, res) => {
     // Initialize the LLM
     const llm = new Groq({
       apiKey: process.env.GROQ_API_KEY,
-      model: "llama3-70b-8192",
+      model: "llama-3.1-8b-instant",
     });
     
     // Generate the answer

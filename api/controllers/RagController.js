@@ -12,7 +12,7 @@ export const createChat = async (req, res) => {
       userId,
       documentId,
       title: title || `Chat ${new Date().toLocaleString()}`,
-      model: model || 'llama3-70b-8192'
+      model: model || 'llama-3.1-8b-instant'
     });
 
     await newChat.populate('documentId', 'title filename');

@@ -48,13 +48,13 @@ const Login = () => {
       }
       
       if (formTouched.password) {
-        const isPasswordValid = formData.password.length >= 6
+        // const isPasswordValid = formData.password.length >= 6
         setValidation(prev => ({
-          ...prev,
-          password: {
-            valid: isPasswordValid,
-            message: isPasswordValid ? "" : "Password must be at least 6 characters"
-          }
+          ...prev
+          // password: {
+          //   valid: isPasswordValid,
+          //   message: isPasswordValid ? "" : "Password must be at least 6 characters"
+          // }
         }))
       }
     }, [formData, formTouched])
