@@ -110,7 +110,7 @@ const Login = () => {
           setError(data.message || "Login failed. Please try again.")
         }
       } catch (err) {
-        setError("Connection error. Please try again later.")
+        setError("Connection error. Please try again later.", err)
       } finally {
         setIsLoading(false)
       }
