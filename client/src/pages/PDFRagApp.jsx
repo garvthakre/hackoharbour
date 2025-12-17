@@ -504,21 +504,21 @@ const createNewChat = async () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+   <div className="min-h-screen bg-zinc-50">
       <div className="flex h-screen">
         {/* Sidebar */}
-        <div className="w-72 bg-gray-800 p-5 flex flex-col gap-5 border-r border-gray-700">
-          <h2 className="text-lg text-gray-300">My Documents</h2>
+        <div className="w-72 bg-white p-5 flex flex-col gap-5 border-r-2 border-zinc-200 shadow-sm">
+          <h2 className="text-lg font-semibold text-zinc-800">My Documents</h2>
           
           <Link
-            className="border-2 border-white text-center rounded-xl py-2 hover:bg-gray-700 transition-colors"
+            className="border-2 border-amber-600 text-center rounded-lg py-2 text-amber-700 font-medium hover:bg-amber-50 transition-colors"
             to="/spaces"
           >
             Collaborative Spaces
           </Link>
 
           <select
-            className="p-2 bg-gray-700 rounded-lg text-white w-full"
+            className="p-2 bg-white border-2 border-amber-200 rounded-lg text-zinc-700 w-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             value={selectedDocId}
             onChange={handleDocumentSelect}
           >
@@ -534,9 +534,9 @@ const createNewChat = async () => {
 
           {/* Model Selection */}
           <div>
-            <h3 className="text-sm text-gray-300 mb-2">AI Model</h3>
+            <h3 className="text-sm font-medium text-zinc-700 mb-2">AI Model</h3>
             <select
-              className="p-2 bg-gray-700 rounded-lg text-white w-full text-sm"
+              className="p-2 bg-white border-2 border-green-200 rounded-lg text-zinc-700 w-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={selectedModel}
               onChange={handleModelSelect}
             >
@@ -549,11 +549,11 @@ const createNewChat = async () => {
           </div>
 
           {/* Chat History Section */}
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg text-gray-300">Chat History</h3>
+          <div className="flex justify-between items-center border-b-2 border-zinc-200 pb-2">
+            <h3 className="text-lg font-semibold text-zinc-800">Chat History</h3>
             <button
               onClick={createNewChat}
-              className="p-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
               title="New Chat"
             >
               <Plus size={16} />
@@ -562,18 +562,20 @@ const createNewChat = async () => {
 
           <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
             {chats.length === 0 ? (
-              <div className="text-gray-500 text-sm">No chat history yet</div>
+              <div className="text-zinc-500 text-sm">No chat history yet</div>
             ) : (
               chats.map((chat) => (
                 <div
                   key={chat._id}
-                  className={`p-3 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors group ${
-                    chat._id === activeChatId ? "bg-gray-600" : "bg-gray-700"
+                  className={`p-3 rounded-lg cursor-pointer transition-colors group border-2 ${
+                    chat._id === activeChatId 
+                      ? "bg-amber-50 border-amber-300" 
+                      : "bg-white border-zinc-200 hover:border-amber-200 hover:bg-amber-50"
                   }`}
                   onClick={() => loadChat(chat._id)}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="truncate flex-1 text-sm">
+                    <div className="truncate flex-1 text-sm text-zinc-800">
                       {chat.title}
                     </div>
                     <button
@@ -581,12 +583,12 @@ const createNewChat = async () => {
                         e.stopPropagation();
                         deleteChat(chat._id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 ml-2 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-600 ml-2 transition-opacity"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <div className="text-xs text-gray-400 mt-1">
+                  <div className="text-xs text-zinc-500 mt-1">
                     {new Date(chat.lastMessageAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -595,19 +597,19 @@ const createNewChat = async () => {
           </div>
 
           {!token && (
-            <div className="bg-yellow-800 p-3 rounded-lg text-yellow-200 text-sm">
-              <p className="font-bold">Not logged in</p>
-              <p>Chat history won't be saved</p>
+            <div className="bg-yellow-50 border-2 border-yellow-200 p-3 rounded-lg text-sm">
+              <p className="font-semibold text-yellow-800">Not logged in</p>
+              <p className="text-yellow-700">Chat history won't be saved</p>
               <div className="flex gap-2 mt-2">
                 <Link 
                   to="/login" 
-                  className="text-blue-300 hover:text-blue-200 underline"
+                  className="text-amber-600 hover:text-amber-700 underline font-medium"
                 >
                   Login
                 </Link>
                 <Link 
                   to="/signup" 
-                  className="text-blue-300 hover:text-blue-200 underline"
+                  className="text-amber-600 hover:text-amber-700 underline font-medium"
                 >
                   Sign Up
                 </Link>
@@ -617,24 +619,18 @@ const createNewChat = async () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col bg-gray-900">
+        <div className="flex-1 flex flex-col bg-white">
           {/* Header */}
-          <header className="p-5 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+          <header className="p-5 bg-white flex justify-between items-center border-b-2 border-zinc-200 shadow-sm">
             <div className="flex gap-4 items-center">
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-2xl font-bold text-amber-600">
                 {activeChatTitle}
               </h1>
               {selectedDocId && (
                 <div className="flex gap-2">
-                  {/* <button
-                    onClick={togglePdfViewer}
-                    className="py-1 px-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                  >
-                    {showPdfViewer ? "Hide PDF" : "Show PDF"}
-                  </button> */}
                   <button
                     onClick={toggleSearch}
-                    className="py-1 px-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center gap-1"
+                    className="py-1 px-3 bg-white border-2 border-green-600 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-sm font-medium flex items-center gap-1"
                   >
                     <Search size={14} />
                     {showSearch ? "Hide Search" : "Search"}
@@ -653,14 +649,14 @@ const createNewChat = async () => {
               />
               <label
                 htmlFor="pdfFile"
-                className="py-2 px-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm"
+                className="py-2 px-4 bg-white border-2 border-amber-600 text-amber-700 rounded-lg hover:bg-amber-50 transition-colors cursor-pointer text-sm font-medium"
               >
                 Select New PDF
               </label>
               <button
                 type="submit"
                 disabled={isLoading || !file}
-                className="py-2 px-4 bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="py-2 px-4 bg-green-600 border-2 border-green-600 text-white rounded-lg hover:bg-green-700 hover:border-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
               >
                 Upload & Process
               </button>
@@ -668,7 +664,7 @@ const createNewChat = async () => {
           </header>
 
           {uploadStatus && (
-            <div className="p-3 bg-gray-800 text-center border-b border-gray-700">
+            <div className="p-3 bg-zinc-50 text-center border-b-2 border-zinc-200 text-zinc-700">
               {uploadStatus}
             </div>
           )}
@@ -678,41 +674,41 @@ const createNewChat = async () => {
             {/* Chat Messages */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {showSearch && (
-                <div className="p-3 bg-gray-800 border-b border-gray-700">
+                <div className="p-3 bg-zinc-50 border-b-2 border-zinc-200">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search in conversation..."
-                    className="w-full p-2 bg-gray-700 rounded-lg text-white"
+                    className="w-full p-2 bg-white border-2 border-amber-200 rounded-lg text-zinc-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   />
                 </div>
               )}
 
-              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-zinc-50">
                 {messages.length === 0 ? (
-                  <div className="text-center text-gray-400 mt-10">
-                    <h3 className="text-xl mb-2">Welcome to PDF RAG Chat!</h3>
+                  <div className="text-center text-zinc-500 mt-10">
+                    <h3 className="text-xl mb-2 font-semibold text-zinc-700">Welcome to PDF RAG Chat!</h3>
                     <p>Select a document and start asking questions</p>
                   </div>
                 ) : (
                   (showSearch ? filteredMessages : messages).map((msg, index) => (
                     <div
                       key={msg.id || index}
-                      className={`p-4 rounded-lg max-w-3xl ${
+                      className={`p-4 rounded-lg max-w-3xl border-2 shadow-sm ${
                         msg.type === "user"
-                          ? "bg-blue-700 ml-auto"
+                          ? "bg-green-100 border-green-600 ml-auto"
                           : msg.type === "bot"
-                          ? "bg-gray-700"
-                          : "bg-gray-800 border border-gray-700 text-gray-400 text-sm"
+                          ? "bg-amber-100 border-amber-600"
+                          : "bg-white border-zinc-200 text-zinc-600 text-sm"
                       }`}
                     >
                       <div className="flex justify-between items-start mb-1">
-                        <span className="font-medium">
+                        <span className="font-semibold text-zinc-800">
                           {msg.type === "user"
                             ? "You"
                             : msg.type === "bot"
-                            ? "AI"
+                            ? "AI Assistant"
                             : "System"}
                         </span>
                         {msg.type !== "system" && (
@@ -720,7 +716,7 @@ const createNewChat = async () => {
                             onClick={() =>
                               copyMessageToClipboard(msg.id || index, msg.content)
                             }
-                            className="text-gray-400 hover:text-white"
+                            className="text-zinc-500 hover:text-zinc-700"
                           >
                             {copiedMessageId === (msg.id || index) ? (
                               <Check size={16} />
@@ -731,9 +727,9 @@ const createNewChat = async () => {
                         )}
                       </div>
                       {msg.type === "bot" ? (
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown className="text-zinc-800">{msg.content}</ReactMarkdown>
                       ) : (
-                        <div>{msg.content}</div>
+                        <div className="text-zinc-800">{msg.content}</div>
                       )}
                     </div>
                   ))
@@ -741,15 +737,15 @@ const createNewChat = async () => {
                 <div ref={messagesEndRef} />
 
                 {isLoading && (
-                  <div className="p-4 bg-gray-700 rounded-lg animate-pulse max-w-3xl">
-                    <p>wait cooking...</p>
+                  <div className="p-4 bg-amber-100 border-2 border-amber-300 rounded-lg animate-pulse max-w-3xl">
+                    <p className="text-amber-800">wait cooking...</p>
                   </div>
                 )}
               </div>
 
               <form
                 onSubmit={handleMessageSubmit}
-                className="p-5 bg-gray-800 border-t border-gray-700"
+                className="p-5 bg-white border-t-2 border-zinc-200"
               >
                 <div className="flex gap-2">
                   <input
@@ -762,12 +758,12 @@ const createNewChat = async () => {
                         : "Please select a document first"
                     }
                     disabled={!selectedDocId || isLoading}
-                    className="flex-1 p-3 bg-gray-700 rounded-lg text-white disabled:opacity-50"
+                    className="flex-1 p-3 bg-white border-2 border-amber-200 rounded-lg text-zinc-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   />
                   <button
                     type="submit"
                     disabled={!selectedDocId || !message.trim() || isLoading}
-                    className="px-5 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 bg-amber-600 border-2 border-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 hover:border-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Send
                   </button>
@@ -777,7 +773,7 @@ const createNewChat = async () => {
 
             {/* PDF Viewer Section */}
             {showPdfViewer && selectedDocId && (
-              <div className="w-1/2 border-l border-gray-700 overflow-hidden">
+              <div className="w-1/2 border-l-2 border-zinc-200 overflow-hidden">
                 <PDFViewer documentId={selectedDocId} />
               </div>
             )}
