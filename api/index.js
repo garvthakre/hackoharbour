@@ -1,5 +1,5 @@
 // index.js - Entry point
-import app from './app.js';
+import app from './src/app.js';
 import dotenv from 'dotenv';
 
 dotenv.config();

@@ -1,17 +1,16 @@
-// controllers/queryController.js - Final version with proper chat handling
 import { queryPinecone } from "../services/pineconeService.js";
-import { ChatGroq } from "@langchain/groq";
 import { RetrievalQAChain } from "langchain/chains";
 import ChatMessage from "../models/chatMessage.js";
 import Space from "../models/Space.js";
 import Chat from "../models/Chat.js";
+import { llmService } from "../services/llmService.js";
 
 // Query a document
 const queryDocument = async (req, res, next) => {
   try {
     const { documentId, query, spaceId, model, chatId } = req.body;
     const userId = req.user?.id;
-    const selectedModel = model || "llama-3.1-8b-instant";
+    const selectedModel = model; // llmService handles default if this is null/undefined, or we can pass it explicitly
     
     console.log('=== QUERY DEBUG START ===');
     console.log('Request body:', { documentId, query, spaceId, model, chatId });
@@ -55,10 +54,9 @@ const queryDocument = async (req, res, next) => {
     console.log('Querying Pinecone...');
     const { vectorStore, document } = await queryPinecone(documentId, query);
 
-    // Initialize Groq client
-    console.log('Initializing Groq with model:', selectedModel);
-    const groq = new ChatGroq({
-      apiKey: process.env.GROQ_API_KEY,
+    // Initialize LLM via service
+    console.log('Initializing LLM with model:', selectedModel);
+    const groq = llmService.getInstance({
       modelName: selectedModel,
       temperature: 0.1,
     });
