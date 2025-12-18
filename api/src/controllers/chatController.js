@@ -1,29 +1,59 @@
- 
+
 import Chat from '../models/Chat.js';
 import ChatMessage from '../models/chatMessage.js';
+import { DEFAULT_MODEL } from '../config/llmModels.js';
 
-// Create a new chat
+ 
 export const createChat = async (req, res) => {
   try {
+    console.log(' CREATE CHAT REQUEST');
+    console.log(' Request body:', req.body);
+    console.log(' User from middleware:', req.user);
+    
     const { documentId, title, model } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
-    const newChat = await Chat.create({
+    if (!userId) {
+      console.log(' No userId found in request');
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    console.log(' Creating chat for user:', userId);
+    console.log(' Document ID:', documentId);
+    console.log(' Title:', title);
+    console.log(' Model:', model);
+
+    const chatData = {
       userId,
-      documentId,
       title: title || `Chat ${new Date().toLocaleString()}`,
-      model: model || 'llama-3.1-8b-instant'
-    });
+      model: model || DEFAULT_MODEL
+    };
 
-    await newChat.populate('documentId', 'title filename');
+    // Only add documentId if it exists and is not null
+    if (documentId) {
+      chatData.documentId = documentId;
+    }
 
+    console.log(' Final chat data to save:', chatData);
+
+    const newChat = await Chat.create(chatData);
+    console.log(' Chat created in DB:', newChat._id);
+
+    // Populate if documentId exists
+    if (newChat.documentId) {
+      await newChat.populate('documentId', 'title filename');
+      console.log(' Populated document info');
+    }
+
+    console.log(' Sending response:', newChat);
     res.status(201).json(newChat);
+    
   } catch (error) {
-    console.error('Error creating chat:', error);
-    res.status(500).json({ error: 'Failed to create chat' });
+    console.error(' Error creating chat:', error);
+    console.error(' Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to create chat: ' + error.message });
   }
 };
-
 // Get user's chats
 export const getUserChats = async (req, res) => {
   try {
@@ -138,5 +168,32 @@ export const getChatHistory = async (req, res) => {
   } catch (error) {
     console.error('Error fetching chat history:', error);
     res.status(500).json({ error: 'Failed to fetch chat history' });
+  }
+};
+
+ export const updateChat = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const { title } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    const chat = await Chat.findOneAndUpdate(
+      { _id: chatId, userId },
+      { title, lastMessageAt: new Date() },
+      { new: true }
+    );
+
+    if (!chat) {
+      return res.status(404).json({ error: 'Chat not found' });
+    }
+
+    res.status(200).json(chat);
+  } catch (error) {
+    console.error('Error updating chat title:', error);
+    next(error);
   }
 };

@@ -727,7 +727,9 @@ const createNewChat = async () => {
                         )}
                       </div>
                       {msg.type === "bot" ? (
-                        <ReactMarkdown className="text-zinc-800">{msg.content}</ReactMarkdown>
+                        <div className="text-zinc-800">
+                        {msg.content}
+                        </div>
                       ) : (
                         <div className="text-zinc-800">{msg.content}</div>
                       )}
