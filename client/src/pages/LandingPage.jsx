@@ -72,7 +72,7 @@ const LandingPage = () => {
       </header>
 
       {/* Video Demo Section */}
-      <section id="demo" className="max-w-6xl mx-auto px-6 mb-32">
+      <section id="demo" className="max-w-6xl mx-auto px-6 mb-12">
         <div className="relative rounded-[32px] overflow-hidden bg-slate-100 border-8 border-slate-50 shadow-2xl shadow-indigo-100">
           <div className="aspect-video w-full bg-slate-200 flex items-center justify-center relative group">
             <iframe 
@@ -83,6 +83,101 @@ const LandingPage = () => {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
+          </div>
+        </div>
+      </section>
+
+       
+      <section className="max-w-2xl mx-auto px-6 mb-32 h-90">
+        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-3xl border-2 border-slate-200 shadow-2xl p-6 overflow-hidden h-[450px]">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, rgb(99 102 241) 1px, transparent 0)',
+              backgroundSize: '40px 40px'
+            }}></div>
+          </div>
+
+          <div className="relative z-10">
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold mb-2 uppercase tracking-wider">
+                Timeline Comparison
+              </div>
+              <h3 className="text-base font-black text-slate-800 mb-1">
+                When collaboration was added
+              </h3>
+              <p className="text-[10px] text-slate-500">Multi-user RAG feature launch dates</p>
+            </div>
+
+            {/* Competitors (Vertical) */}
+            <div className="flex justify-center gap-6 mb-4 ">
+              <div className="flex flex-col items-center p-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                <div className="w-6 h-6 rounded-md bg-green-50 flex items-center justify-center mb-1">
+                  <span className="text-sm">💬</span>
+                </div>
+                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">ChatGPT</div>
+                <div className="text-lg font-black text-slate-800">Nov 28</div>
+                <div className="text-[10px] text-slate-500 font-medium">2025</div>
+              </div>
+              <div className="flex flex-col items-center p-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center mb-1">
+                  <span className="text-sm">🔮</span>
+                </div>
+                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Perplexity</div>
+                <div className="text-lg font-black text-slate-800">Oct 15</div>
+                <div className="text-[10px] text-slate-500 font-medium">2025</div>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="relative my-3">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-dashed border-slate-300"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-gradient-to-br from-slate-50 via-white to-slate-50 px-3 py-0.5 text-[10px] font-black text-slate-400 uppercase tracking-widest rounded-full border border-slate-200">
+                  vs
+                </span>
+              </div>
+            </div>
+
+            {/* CollabGPT (Below, Highlighted) */}
+            <div className="flex justify-center">
+              <div className="relative">
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-indigo-400 blur-lg opacity-25 rounded-xl"></div>
+                
+                {/* Main card */}
+                <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-700 rounded-xl p-3 shadow-xl border border-indigo-400">
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full p-1.5 shadow-lg animate-pulse border border-white">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  </div>
+                  
+                  <div className="text-center text-white h-25">
+                    <div className="w-9  rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-1.5 border border-white/30">
+                      <span className="text-lg">🚀</span>
+                    </div>
+                    <div className="text-[9px] font-bold mb-1 text-indigo-100 uppercase tracking-wider">CollabGPT</div>
+                    <div className="text-2xl font-black mb-0.5 tracking-tight">Feb 4</div>
+                    <div className="text-xs text-indigo-100 font-semibold mb-2">2025</div>
+                    <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest bg-white text-indigo-600 rounded-full px-2.5 py-1 shadow-md">
+                      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                      </svg>
+                      First to Ship
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-7 text-center">
+              <p className="text-[10px] text-slate-500">
+                Shipped <span className="font-black text-indigo-600 text-xs">9+ months earlier</span> than the competition
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -202,8 +297,8 @@ const LandingPage = () => {
             Collaborative RAG PDF APP
           </p>
           <div className="flex gap-6">
-            <a href="https://github.com/adnankhan46/collab-gpt-rag" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">System Status</a>
-            <a href="https://github.com/adnankhan46/collab-gpt-rag" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">Documentation</a>
+            <a href="https://github.com/garvthakre/CollabGPT" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">System Status</a>
+            <a href="https://github.com/garvthakre/CollabGPT" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">Documentation</a>
           </div>
         </div>
       </footer>
