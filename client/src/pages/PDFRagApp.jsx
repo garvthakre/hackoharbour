@@ -31,11 +31,11 @@ function PDFRagApp() {
   // Model selection
   const [availableModels, setAvailableModels] = useState([
     { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B Versatile" },
-  { id: "deepseek-r1-distill-llama-70b", name: "DeepSeek R1 Distill Llama 70B" },
-  { id: "qwen/qwen3-32b", name: "Qwen 3 32B" },
-  { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B Instant" },
-  { id: "gemma2-9b-it", name: "Gemma2 9B IT" },
-  { id: "moonshotai/kimi-k2-instruct", name: "Kimi K2 Instruct" },
+    { id: "deepseek-r1-distill-llama-70b", name: "DeepSeek R1 Distill Llama 70B" },
+    { id: "qwen/qwen3-32b", name: "Qwen 3 32B" },
+    { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B Instant" },
+    { id: "gemma2-9b-it", name: "Gemma2 9B IT" },
+    { id: "moonshotai/kimi-k2-instruct", name: "Kimi K2 Instruct" },
   ]);
   const [selectedModel, setSelectedModel] = useState("llama-3.1-8b-instant");
 
@@ -70,55 +70,52 @@ function PDFRagApp() {
     setFilteredMessages(filtered);
   }, [searchQuery, messages]);
 
-const fetchUserInfo = async (authToken) => {
-  console.log(" Fetching user info with token:", authToken ? "EXISTS" : "MISSING");
-  
-  try {
-    const response = await fetch("/api/user/me", {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
+  const fetchUserInfo = async (authToken) => {
+    console.log(" Fetching user info with token:", authToken ? "EXISTS" : "MISSING");
+    
+    try {
+      const response = await fetch("/api/user/me", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
 
-    console.log("👤 User fetch response status:", response.status);
+      console.log("👤 User fetch response status:", response.status);
 
-    if (response.ok) {
-      const userData = await response.json();
-      console.log(" User data fetched:", userData);
-      setUser(userData);
-    } else {
-      const errorText = await response.text();
-      console.error(" User fetch failed:", response.status, errorText);
+      if (response.ok) {
+        const userData = await response.json();
+        console.log(" User data fetched:", userData);
+        setUser(userData);
+      } else {
+        const errorText = await response.text();
+        console.error(" User fetch failed:", response.status, errorText);
+        
+        if (authToken) {
+          try {
+            const payload = JSON.parse(atob(authToken.split('.')[1]));
+            console.log(" Manual token decode:", payload);
+            setUser({ id: payload.id });
+          } catch (e) {
+            console.error(" Token decode failed:", e);
+            setUser(null);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(" Failed to fetch user info:", error);
       
-      // If user fetch fails, try to decode token manually to get user ID
       if (authToken) {
         try {
           const payload = JSON.parse(atob(authToken.split('.')[1]));
-          console.log(" Manual token decode:", payload);
-          // Create minimal user object from token
+          console.log(" Fallback token decode:", payload);
           setUser({ id: payload.id });
         } catch (e) {
-          console.error(" Token decode failed:", e);
+          console.error(" Fallback token decode failed:", e);
           setUser(null);
         }
       }
     }
-  } catch (error) {
-    console.error(" Failed to fetch user info:", error);
-    
-    // Fallback: try to decode token manually
-    if (authToken) {
-      try {
-        const payload = JSON.parse(atob(authToken.split('.')[1]));
-        console.log(" Fallback token decode:", payload);
-        setUser({ id: payload.id });
-      } catch (e) {
-        console.error(" Fallback token decode failed:", e);
-        setUser(null);
-      }
-    }
-  }
-};
+  };
 
   const fetchDocuments = async (authToken = null) => {
     try {
@@ -134,6 +131,8 @@ const fetchUserInfo = async (authToken) => {
   const fetchUserChats = async (authToken = null) => {
     if (!authToken) return;
 
+    console.log("📋 Fetching user chats...");
+    
     try {
       const response = await fetch("/api/chat/user", {
         headers: {
@@ -143,17 +142,26 @@ const fetchUserInfo = async (authToken) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Chats fetched:", data.length, "chats");
         setChats(data);
+        
+        // Auto-load the most recent chat if we don't have an active chat
+        if (data.length > 0 && !activeChatId) {
+          console.log("🔄 Auto-loading most recent chat...");
+          const mostRecentChat = data[0];
+          loadChat(mostRecentChat._id);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch user chats:", error);
     }
   };
 
-  
   const loadChat = async (chatId) => {
     if (!token) return;
 
+    console.log("🔄 Loading chat:", chatId);
+    
     try {
       const response = await fetch(`/api/chat/chat/${chatId}`, {
         headers: {
@@ -161,24 +169,37 @@ const fetchUserInfo = async (authToken) => {
         },
       });
 
+      console.log("Chat load response status:", response.status);
+
       if (response.ok) {
         const chat = await response.json();
+        console.log("Chat data loaded:", chat);
+        
         setActiveChatId(chat._id);
         setActiveChatTitle(chat.title);
         
-        // Set document if chat has one
         if (chat.documentId) {
           setSelectedDocId(chat.documentId._id);
-          setSelectedDocName(chat.documentId.title);
+          setSelectedDocName(chat.documentId.title || chat.documentId.filename);
         }
         
-        // Set model
         if (chat.model) {
           setSelectedModel(chat.model);
         }
 
-        // Load messages
-        setMessages(chat.messages || []);
+        // Load messages - handle both possible structures
+        const loadedMessages = chat.messages || [];
+        console.log("Messages loaded:", loadedMessages.length, "messages");
+        
+        // Transform messages to ensure they have the correct structure
+        const transformedMessages = loadedMessages.map(msg => ({
+          id: msg._id || msg.id || Date.now(),
+          type: msg.type === "question" ? "user" : msg.type === "answer" ? "bot" : msg.type,
+          content: msg.content
+        }));
+        
+        setMessages(transformedMessages);
+        console.log("Transformed messages:", transformedMessages);
       }
     } catch (error) {
       console.error("Failed to load chat:", error);
@@ -197,7 +218,6 @@ const fetchUserInfo = async (authToken) => {
       });
 
       if (response.ok) {
-        // If deleted chat was active, create new chat
         if (chatId === activeChatId) {
           setActiveChatId(null);
           setActiveChatTitle("New Chat");
@@ -271,7 +291,6 @@ const fetchUserInfo = async (authToken) => {
       setSelectedDocId(docId);
       setSelectedDocName(selectedDoc.title);
 
-      // Update current chat's document if we have an active chat
       if (activeChatId && token) {
         try {
           await fetch(`/api/chat/chat/${activeChatId}`, {
@@ -298,195 +317,165 @@ const fetchUserInfo = async (authToken) => {
   const handleModelSelect = (e) => {
     setSelectedModel(e.target.value);
   };
-const handleMessageSubmit = async (e) => {
-  e.preventDefault();
 
-  if (!message.trim()) return;
+  const handleMessageSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!selectedDocId) {
-    const systemMessage = {
-      type: "system",
-      content: "Please select a document first.",
-      id: Date.now(),
-    };
-    setMessages([...messages, systemMessage]);
-    return;
-  }
+    if (!message.trim()) return;
 
-  const userMessage = { type: "user", content: message, id: Date.now() };
-  const updatedMessages = [...messages, userMessage];
-  setMessages(updatedMessages);
-  
-  const currentMessage = message;
-  setMessage("");
-  setIsLoading(true);
+    if (!selectedDocId) {
+      const systemMessage = {
+        type: "system",
+        content: "Please select a document first.",
+        id: Date.now(),
+      };
+      setMessages([...messages, systemMessage]);
+      return;
+    }
 
-  let chatIdToUse = activeChatId;
-  
-  console.log(" Starting message submit");
-  console.log(" Current activeChatId:", activeChatId);
-  console.log(" Token exists:", !!token);
-  console.log(" User exists:", !!user);
-
-  // If user has token but no active chat, create one first
-  // Don't require user object - token is enough
-  if (token && !chatIdToUse) {
-    console.log("💡 Need to create chat first (token-based)");
+    const userMessage = { type: "user", content: message, id: Date.now() };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     
+    const currentMessage = message;
+    setMessage("");
+    setIsLoading(true);
+
+    let chatIdToUse = activeChatId;
+    
+    console.log("📤 Submitting message");
+    console.log("Current chatId:", activeChatId);
+    
+    if (token && !chatIdToUse) {
+      console.log("Creating new chat first...");
+      try {
+        const createResponse = await fetch("/api/chat/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            documentId: selectedDocId,
+            title: `Chat about ${selectedDocName}`,
+            model: selectedModel,
+          }),
+        });
+
+        if (createResponse.ok) {
+          const newChat = await createResponse.json();
+          chatIdToUse = newChat._id;
+          setActiveChatId(newChat._id);
+          setActiveChatTitle(newChat.title);
+          console.log("✅ New chat created:", newChat._id);
+          fetchUserChats(token);
+        } else {
+          console.log("❌ Chat creation failed");
+          chatIdToUse = null;
+        }
+      } catch (error) {
+        console.error("Chat creation error:", error);
+        chatIdToUse = null;
+      }
+    }
+
     try {
-      const createResponse = await fetch("/api/chat/create", {
+      const queryPayload = {
+        documentId: selectedDocId,
+        query: currentMessage,
+        model: selectedModel,
+      };
+
+      if (chatIdToUse) {
+        queryPayload.chatId = chatIdToUse;
+        console.log("📨 Sending with chatId:", chatIdToUse);
+      } else {
+        console.log("⚠️ Sending without chatId - messages won't be saved");
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/query", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(queryPayload),
+      });
+
+      const result = await response.json();
+      console.log("Query result:", result);
+
+      if (response.ok) {
+        const botMessage = {
+          type: "bot",
+          content: result.answer,
+          id: Date.now(),
+        };
+        setMessages([...updatedMessages, botMessage]);
+        
+        // If we have a chatId, reload the chat to get messages from backend
+        if (chatIdToUse) {
+          console.log("🔄 Reloading chat to sync with backend...");
+          setTimeout(() => loadChat(chatIdToUse), 1000);
+        }
+      } else {
+        const errorMessage = {
+          type: "system",
+          content: "Error: " + (result.error || "Failed to get response"),
+          id: Date.now(),
+        };
+        setMessages([...updatedMessages, errorMessage]);
+      }
+    } catch (error) {
+      const errorMessage = {
+        type: "system",
+        content: "Query failed: " + error.message,
+        id: Date.now(),
+      };
+      setMessages([...updatedMessages, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createNewChat = async () => {
+    if (!token || !user) {
+      setMessages([]);
+      setActiveChatId(null);
+      setActiveChatTitle("New Chat");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/chat/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          documentId: selectedDocId,
-          title: `Chat about ${selectedDocName}`,
+          documentId: selectedDocId || null,
+          title: selectedDocId ? `Chat about ${selectedDocName}` : "New Chat",
           model: selectedModel,
         }),
       });
 
-      console.log("Chat creation response status:", createResponse.status);
-
-      if (createResponse.ok) {
-        const newChat = await createResponse.json();
-        chatIdToUse = newChat._id;
+      if (response.ok) {
+        const newChat = await response.json();
         setActiveChatId(newChat._id);
         setActiveChatTitle(newChat.title);
-        console.log(" Chat created successfully:", newChat._id);
-        fetchUserChats(token); // Update chat list
-      } else {
-        const errorText = await createResponse.text();
-        console.error(" Chat creation failed:", errorText);
-        // Continue without chat - messages won't be saved but query will work
-        chatIdToUse = null;
+        setMessages([]);
+        fetchUserChats(token);
       }
     } catch (error) {
-      console.error(" Chat creation error:", error);
-      // Continue without chat - messages won't be saved but query will work
-      chatIdToUse = null;
+      console.error("Chat creation error:", error);
     }
-  }
-
-  console.log(" Final chatId to use:", chatIdToUse);
-
-  // Now send the query
-  try {
-    const queryPayload = {
-      documentId: selectedDocId,
-      query: currentMessage,
-      model: selectedModel,
-    };
-
-    // Only add chatId if we have one
-    if (chatIdToUse) {
-      queryPayload.chatId = chatIdToUse;
-      console.log(" Sending with chatId:", chatIdToUse);
-    } else {
-      console.log(" Sending without chatId - messages won't be saved to history");
-    }
-
-    const headers = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    console.log(" Final query payload:", queryPayload);
-
-    const response = await fetch("/api/query", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(queryPayload),
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      const botMessage = {
-        type: "bot",
-        content: result.answer,
-        id: Date.now(),
-      };
-      setMessages([...updatedMessages, botMessage]);
-      
-      console.log(" Query successful");
-      if (result.debug) {
-        console.log(" Backend debug:", result.debug);
-      }
-    } else {
-      console.error("Query failed:", result);
-      const errorMessage = {
-        type: "system",
-        content: "Error: " + (result.error || "Failed to get response"),
-        id: Date.now(),
-      };
-      setMessages([...updatedMessages, errorMessage]);
-    }
-  } catch (error) {
-    console.error(" Query request error:", error);
-    const errorMessage = {
-      type: "system",
-      content: "Query failed: " + error.message,
-      id: Date.now(),
-    };
-    setMessages([...updatedMessages, errorMessage]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-const createNewChat = async () => {
-  alert("Creating new chat - check console"); // This will help us see if function is called
-  console.log("SIMPLE: Creating new chat");
-  console.log("SIMPLE: Token:", token ? "EXISTS" : "MISSING");
-  console.log("SIMPLE: User:", user ? "EXISTS" : "MISSING");
-  
-  if (!token || !user) {
-    console.log("SIMPLE: Not authenticated, clearing local chat");
-    setMessages([]);
-    setActiveChatId(null);
-    setActiveChatTitle("New Chat");
-    return;
-  }
-
-  try {
-    console.log("SIMPLE: Making fetch request to create chat");
-    const response = await fetch("/api/chat/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        documentId: selectedDocId || null,
-        title: selectedDocId ? `Chat about ${selectedDocName}` : "New Chat",
-        model: selectedModel,
-      }),
-    });
-
-    console.log("SIMPLE: Response status:", response.status);
-    
-    if (response.ok) {
-      const newChat = await response.json();
-      console.log("SIMPLE: Chat created successfully:", newChat);
-      setActiveChatId(newChat._id);
-      setActiveChatTitle(newChat.title);
-      setMessages([]);
-      fetchUserChats(token);
-      alert("Chat created with ID: " + newChat._id); // Visual confirmation
-    } else {
-      const errorText = await response.text();
-      console.error("SIMPLE: Failed to create chat:", errorText);
-      alert("Failed to create chat: " + errorText);
-    }
-  } catch (error) {
-    console.error("SIMPLE: Chat creation error:", error);
-    alert("Chat creation error: " + error.message);
-  }
-};
+  };
 
   const copyMessageToClipboard = (messageId, content) => {
     navigator.clipboard.writeText(content);
@@ -504,7 +493,7 @@ const createNewChat = async () => {
   };
 
   return (
-   <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-zinc-50">
       <div className="flex h-screen">
         {/* Sidebar */}
         <div className="w-72 bg-white p-5 flex flex-col gap-5 border-r-2 border-zinc-200 shadow-sm">
@@ -532,7 +521,6 @@ const createNewChat = async () => {
             ))}
           </select>
 
-          {/* Model Selection */}
           <div>
             <h3 className="text-sm font-medium text-zinc-700 mb-2">AI Model</h3>
             <select
@@ -548,7 +536,6 @@ const createNewChat = async () => {
             </select>
           </div>
 
-          {/* Chat History Section */}
           <div className="flex justify-between items-center border-b-2 border-zinc-200 pb-2">
             <h3 className="text-lg font-semibold text-zinc-800">Chat History</h3>
             <button
@@ -620,7 +607,6 @@ const createNewChat = async () => {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col bg-white">
-          {/* Header */}
           <header className="p-5 bg-white flex justify-between items-center border-b-2 border-zinc-200 shadow-sm">
             <div className="flex gap-4 items-center">
               <h1 className="text-2xl font-bold text-amber-600">
@@ -669,9 +655,7 @@ const createNewChat = async () => {
             </div>
           )}
 
-          {/* Main Content Area */}
           <div className="flex-1 flex overflow-hidden">
-            {/* Chat Messages */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {showSearch && (
                 <div className="p-3 bg-zinc-50 border-b-2 border-zinc-200">
@@ -697,14 +681,14 @@ const createNewChat = async () => {
                       key={msg.id || index}
                       className={`p-4 rounded-lg max-w-3xl border-2 shadow-sm ${
                         msg.type === "user"
-                          ? "bg-green-100 border-green-600 ml-auto"
+                          ? "bg-green-100 border-green-600 ml-auto text-zinc-900"
                           : msg.type === "bot"
-                          ? "bg-amber-100 border-amber-600"
-                          : "bg-white border-zinc-200 text-zinc-600 text-sm"
+                          ? "bg-amber-100 border-amber-600 text-zinc-900"
+                          : "bg-zinc-100 border-zinc-300 text-zinc-700"
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-zinc-800">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-semibold text-zinc-900">
                           {msg.type === "user"
                             ? "You"
                             : msg.type === "bot"
@@ -716,7 +700,7 @@ const createNewChat = async () => {
                             onClick={() =>
                               copyMessageToClipboard(msg.id || index, msg.content)
                             }
-                            className="text-zinc-500 hover:text-zinc-700"
+                            className="text-zinc-600 hover:text-zinc-900"
                           >
                             {copiedMessageId === (msg.id || index) ? (
                               <Check size={16} />
@@ -726,13 +710,9 @@ const createNewChat = async () => {
                           </button>
                         )}
                       </div>
-                      {msg.type === "bot" ? (
-                        <div className="text-zinc-800">
+                      <div className="text-zinc-900 whitespace-pre-wrap">
                         {msg.content}
-                        </div>
-                      ) : (
-                        <div className="text-zinc-800">{msg.content}</div>
-                      )}
+                      </div>
                     </div>
                   ))
                 )}
@@ -740,7 +720,7 @@ const createNewChat = async () => {
 
                 {isLoading && (
                   <div className="p-4 bg-amber-100 border-2 border-amber-300 rounded-lg animate-pulse max-w-3xl">
-                    <p className="text-amber-800">wait cooking...</p>
+                    <p className="text-amber-800">AI is thinking...</p>
                   </div>
                 )}
               </div>
@@ -773,7 +753,6 @@ const createNewChat = async () => {
               </form>
             </div>
 
-            {/* PDF Viewer Section */}
             {showPdfViewer && selectedDocId && (
               <div className="w-1/2 border-l-2 border-zinc-200 overflow-hidden">
                 <PDFViewer documentId={selectedDocId} />
