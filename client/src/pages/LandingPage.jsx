@@ -29,13 +29,13 @@ const LandingPage = () => {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/login')}
-            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
+            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
           >
             Login In
           </button>
           <button 
             onClick={() => navigate('/signup')}
-            className="px-6 py-2.5 bg-slate-900 hover:bg-indigo-600 text-white text-sm font-bold rounded-full transition-all"
+            className="px-6 py-2.5 bg-slate-900 hover:bg-indigo-600 text-white text-sm font-bold rounded-full transition-all cursor-pointer"
           >
             Get Started
           </button>
@@ -43,7 +43,7 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="pt-20 pb-12 px-6 text-center max-w-5xl mx-auto">
+      <header className="pt-12 pb-6 px-6 text-center max-w-5xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-8 uppercase tracking-[0.2em]">
           Collaborative RAG PDF APP
         </div>
@@ -53,15 +53,15 @@ const LandingPage = () => {
           <span className="text-indigo-600">for your team's PDFs.</span>
         </h1>
         
-        <p className="text-xl text-slate-500 mb-12 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-xl text-slate-500 mb-6 max-w-3xl mx-auto leading-relaxed">
           While others were building personal chatbots, we built the <strong>Multi-User Retrieval Engine</strong>. 
           Query vast document libraries collaboratively in real-time.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
           <button 
             onClick={() => navigate('/signup')}
-            className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
+            className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-2xl cursor-pointer font-bold text-lg flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
           >
             Start a Workspace <ArrowRight className="h-5 w-5" />
           </button>
@@ -75,14 +75,7 @@ const LandingPage = () => {
       <section id="demo" className="max-w-6xl mx-auto px-6 mb-12">
         <div className="relative rounded-[32px] overflow-hidden bg-slate-100 border-8 border-slate-50 shadow-2xl shadow-indigo-100">
           <div className="aspect-video w-full bg-slate-200 flex items-center justify-center relative group">
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/your-video-id" 
-              title="MultiRAG Demo"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <iframe className='w-full h-full' src="https://www.youtube.com/embed/9EmrKSyg2oc?si=R20x1juYkHsvah5_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
           </div>
         </div>
       </section>
@@ -156,11 +149,11 @@ const LandingPage = () => {
                   </div>
                   
                   <div className="text-center text-white h-25">
-                    <div className="w-9  rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-1.5 border border-white/30">
+                    <div className="w-9 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-1.5 border border-white/30">
                       <span className="text-lg">🚀</span>
                     </div>
                     <div className="text-[9px] font-bold mb-1 text-indigo-100 uppercase tracking-wider">CollabGPT</div>
-                    <div className="text-2xl font-black mb-0.5 tracking-tight">Feb 4</div>
+                    <div className="text-2xl font-black mb-0.5 tracking-tight">20 March</div>
                     <div className="text-xs text-indigo-100 font-semibold mb-2">2025</div>
                     <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest bg-white text-indigo-600 rounded-full px-2.5 py-1 shadow-md">
                       <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
@@ -220,7 +213,7 @@ const LandingPage = () => {
       </section>
 
       {/* Final CTA & Creator Section */}
-      <section className="py-24 bg-white border-t border-slate-50">
+      <section className="py-16 bg-white border-t border-slate-50">
         <div className="max-w-5xl mx-auto px-6">
           {/* CTA Card */}
           <div className="rounded-[40px] bg-indigo-600 py-16 px-8 text-center text-white shadow-2xl shadow-indigo-200 mb-20">
@@ -231,7 +224,7 @@ const LandingPage = () => {
             </p>
             <button 
               onClick={() => navigate('/signup')}
-              className="px-12 py-5 bg-white text-indigo-600 rounded-2xl font-black text-xl hover:bg-slate-50 transition-all shadow-lg mb-8"
+              className="cursor-pointer px-12 py-5 bg-white text-indigo-600 rounded-2xl font-black text-xl hover:bg-slate-50 transition-all shadow-lg mb-8"
             >
               Create Your Space
             </button>
@@ -297,7 +290,7 @@ const LandingPage = () => {
             Collaborative RAG PDF APP
           </p>
           <div className="flex gap-6">
-            <a href="https://github.com/garvthakre/CollabGPT" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">System Status</a>
+            <a href="https://github.com/garvthakre/CollabGPT" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">Github</a>
             <a href="https://github.com/garvthakre/CollabGPT" className="text-slate-400 hover:text-indigo-600 text-xs font-bold uppercase tracking-tighter transition-colors">Documentation</a>
           </div>
         </div>
