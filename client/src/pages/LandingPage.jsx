@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -15,6 +15,14 @@ import {
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [isServerActiveMsg, setIsServerActiveMsg] = useState("jjj");
+
+  useEffect(() => {
+    const isServerActive = import.meta.env.VITE_IS_SERVER_ACTIVE;
+    if (isServerActive && isServerActive.toLowerCase() === 'false') {
+      setIsServerActiveMsg("Server is temporarily down");
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100">
@@ -27,6 +35,11 @@ const LandingPage = () => {
           <span className="text-2xl font-black tracking-tight text-slate-900">CollabGPT</span>
         </div>
         <div className="flex items-center gap-4">
+          <button 
+            className="px-4 py-2 text-sm font-semibold text-slate-600 border-2 rounded-lg hover:text-indigo-600 transition-colors cursor-pointer"
+          >
+           {isServerActiveMsg}
+          </button>
           <button 
             onClick={() => navigate('/login')}
             className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
