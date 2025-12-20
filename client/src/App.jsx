@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import Home from "./pages/Home";
 import LandingPage from "./pages/LandingPage";
-import Signup from "./pages/SignUp";
+import Signup from "./pages/SignUp"; // fixed typo
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";

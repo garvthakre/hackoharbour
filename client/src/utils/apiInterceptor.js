@@ -1,4 +1,3 @@
-
 const originalFetch = window.fetch;
 
 window.fetch = async (...args) => {

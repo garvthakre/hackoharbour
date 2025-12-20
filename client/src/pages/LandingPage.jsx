@@ -22,7 +22,7 @@ const LandingPage = () => {
     if (isServerActive && isServerActive.toLowerCase() === 'false') {
       setIsServerActiveMsg("Server is temporarily down");
     }
-  }, [])
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100">
