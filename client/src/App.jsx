@@ -6,7 +6,7 @@ import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
 import Footer from "./components/Footer";
-import PDFRagApp from "./pages/PDFRAGApp";
+import PDFRagApp from "./pages/PDFRagApp";
 import CollaborativeSpace from "./pages/CollaborativeSpace";
 import CollaborativeWorkspace from "./pages/CollaborativeWorkspace";
 function App() {
