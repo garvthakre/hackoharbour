@@ -257,7 +257,7 @@ const LandingPage = () => {
                   <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Adnan Khan</h4>
                   <div className="flex gap-3 mt-2 justify-center items-center">
                     <a href="https://adnankhan93.vercel.app" className="text-slate-400 hover:text-slate-900 transition-colors">Portfolio</a>
-                    <a href="https://github.com/adnankahn46" className="text-slate-400 hover:text-slate-900 transition-colors"><Github className="h-7 w-7" /></a>
+                    <a href="https://github.com/adnankhan46" className="text-slate-400 hover:text-slate-900 transition-colors"><Github className="h-7 w-7" /></a>
                   </div>
                 </div>
               </div>
