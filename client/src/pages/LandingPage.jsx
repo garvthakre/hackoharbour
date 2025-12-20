@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { 
   Users, 
   Zap, 
@@ -12,10 +12,11 @@ import {
   ShieldCheck,
   Github, Globe, ExternalLink
 } from 'lucide-react';
+import LiquidEther from '../components/LiquidEther';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [isServerActiveMsg, setIsServerActiveMsg] = useState("jjj");
+  const [isServerActiveMsg, setIsServerActiveMsg] = useState("");
 
   useEffect(() => {
     const isServerActive = import.meta.env.VITE_IS_SERVER_ACTIVE;
@@ -27,19 +28,22 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100">
       {/* Top Navigation */}
-      <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
+      <nav className="flex items-center justify-between px-4 py-6 max-w-7xl mx-auto gap-2">
         <div className="flex items-center gap-2">
           <div className="w-16 h-16 rounded-xl flex items-center justify-center">
             <img src='/collabgpt-logo.png'/>
           </div>
           <span className="text-2xl font-black tracking-tight text-slate-900">CollabGPT</span>
         </div>
-        <div className="flex items-center gap-4">
+        
+        <div>
           <button 
-            className="px-4 py-2 text-sm font-semibold text-slate-600 border-2 rounded-lg hover:text-indigo-600 transition-colors cursor-pointer"
-          >
+            className="px-2 py-1 text-xs font-semibold text-slate-600 border-2 rounded-lg hover:text-indigo-600 transition-colors cursor-pointer"
+            >
            {isServerActiveMsg}
           </button>
+            </div>
+        <div className="flex items-center gap-2 md:flex-row flex-col">
           <button 
             onClick={() => navigate('/login')}
             className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
@@ -48,7 +52,7 @@ const LandingPage = () => {
           </button>
           <button 
             onClick={() => navigate('/signup')}
-            className="px-6 py-2.5 bg-slate-900 hover:bg-indigo-600 text-white text-sm font-bold rounded-full transition-all cursor-pointer"
+            className="hidden md:block md:px-6 px-4 py-2.5 bg-slate-900 hover:bg-indigo-600 text-white text-sm font-bold rounded-full transition-all cursor-pointer"
           >
             Get Started
           </button>
@@ -56,143 +60,143 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="pt-12 pb-6 px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-8 uppercase tracking-[0.2em]">
-          Collaborative RAG PDF APP
+      {/* Hero Section */}
+      <div className="relative w-full" style={{ minHeight: '600px' }}>
+        <div className="absolute inset-0 z-0">
+          <LiquidEther
+              colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]}
+              mouseForce={20}
+              cursorSize={100}
+              isViscous={false}
+              viscous={30}
+              iterationsViscous={32}
+              iterationsPoisson={32}
+              resolution={0.5}
+              isBounce={false}
+              autoDemo={true}
+              autoSpeed={0.5}
+              autoIntensity={2.2}
+              takeoverDuration={0.25}
+              autoResumeDelay={3000}
+              autoRampDuration={0.6}
+          />
         </div>
-        
-        <h1 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter mb-8 leading-[0.95]">
-          The first shared brain <br/>
-          <span className="text-indigo-600">for your team's PDFs.</span>
-        </h1>
-        
-        <p className="text-xl text-slate-500 mb-6 max-w-3xl mx-auto leading-relaxed">
-          While others were building personal chatbots, we built the <strong>Multi-User Retrieval Engine</strong>. 
-          Query vast document libraries collaboratively in real-time.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-          <button 
-            onClick={() => navigate('/signup')}
-            className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-2xl cursor-pointer font-bold text-lg flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
-          >
-            Start a Workspace <ArrowRight className="h-5 w-5" />
-          </button>
-          <a href="#demo" className="w-full sm:w-auto px-10 py-5 bg-white text-slate-900 border border-slate-200 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
-            <PlayCircle className="h-5 w-5 text-indigo-600" /> Watch Demo
-          </a>
-        </div>
-      </header>
+        <header className="relative z-10 pt-20 pb-16 px-6 text-center max-w-5xl mx-auto flex flex-col items-center justify-center h-full" style={{ minHeight: '600px' }}>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-indigo-100 text-indigo-700 text-xs font-bold mb-8 uppercase tracking-[0.2em] shadow-sm">
+            Collaborative RAG PDF APP
+          </div>
+          
+          <h1 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter mb-8 leading-[0.95]">
+            The first shared brain <br/>
+            <span className="text-indigo-600">for your team's PDFs.</span>
+          </h1>
+          
+          <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed bg-white/40 backdrop-blur-sm p-4 rounded-xl">
+           Increase your team's productivity with <strong>CollabGPT</strong>. 
+          </p>
+  
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <button 
+              onClick={() => navigate('/login')}
+              className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-2xl cursor-pointer font-bold text-lg flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
+            >
+              Start a Workspace <ArrowRight className="h-5 w-5" />
+            </button>
+            <a href="#demo" className="w-full sm:w-auto px-10 py-5 bg-white/80 backdrop-blur-md text-slate-900 border border-slate-200 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-white transition-all">
+              <PlayCircle className="h-5 w-5 text-indigo-600" /> Watch Demo
+            </a>
+          </div>
+        </header>
+      </div>
 
       {/* Video Demo Section */}
       <section id="demo" className="max-w-6xl mx-auto px-6 mb-12">
         <div className="relative rounded-[32px] overflow-hidden bg-slate-100 border-8 border-slate-50 shadow-2xl shadow-indigo-100">
           <div className="aspect-video w-full bg-slate-200 flex items-center justify-center relative group">
-            <iframe className='w-full h-full' src="https://www.youtube.com/embed/9EmrKSyg2oc?si=R20x1juYkHsvah5_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            <iframe className='w-full h-full' src="https://www.youtube.com/embed/9EmrKSyg2oc?si=R20x1juYkHsvah5_" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
           </div>
         </div>
       </section>
 
        
-      <section className="max-w-2xl mx-auto px-6 mb-32 h-90">
-        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-3xl border-2 border-slate-200 shadow-2xl p-6 overflow-hidden h-[450px]">
-          {/* Subtle background pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0" style={{
-              backgroundImage: 'radial-gradient(circle at 2px 2px, rgb(99 102 241) 1px, transparent 0)',
-              backgroundSize: '40px 40px'
-            }}></div>
+      <section className="py-10 bg-slate-50/50 border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold mb-8 uppercase tracking-wider">
+            Timeline Comparison
           </div>
+          
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
+            When collaboration was added
+          </h2>
+          <p className="text-lg text-slate-500 mb-16 max-w-2xl mx-auto leading-relaxed">
+            Multi-user RAG feature launch dates compared to major platforms.
+          </p>
 
-          <div className="relative z-10">
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold mb-2 uppercase tracking-wider">
-                Timeline Comparison
-              </div>
-              <h3 className="text-base font-black text-slate-800 mb-1">
-                When collaboration was added
-              </h3>
-              <p className="text-[10px] text-slate-500">Multi-user RAG feature launch dates</p>
-            </div>
+          <div className="max-w-3xl mx-auto">
+             <div className="relative bg-white rounded-[32px] p-8 md:p-12 shadow-xl shadow-slate-200/50 border border-slate-100">
+               {/* Subtle grid pattern background */}
+               <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '16px 16px'}}></div>
+               
+               <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
+                 
+                 {/* Competitors Group */}
+                 <div className="flex gap-4">
+                   {/* ChatGPT */}
+                   <div className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 border border-slate-100 min-w-[100px]">
+                     <div className="text-2xl mb-2">💬</div>
+                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ChatGPT</div>
+                     <div className="text-lg font-black text-slate-800">Nov</div>
+                     <div className="text-xs text-slate-400 font-medium">2025</div>
+                   </div>
 
-            {/* Competitors (Vertical) */}
-            <div className="flex justify-center gap-6 mb-4 ">
-              <div className="flex flex-col items-center p-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                <div className="w-6 h-6 rounded-md bg-green-50 flex items-center justify-center mb-1">
-                  <span className="text-sm">💬</span>
-                </div>
-                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">ChatGPT</div>
-                <div className="text-lg font-black text-slate-800">Nov 28</div>
-                <div className="text-[10px] text-slate-500 font-medium">2025</div>
-              </div>
-              <div className="flex flex-col items-center p-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center mb-1">
-                  <span className="text-sm">🔮</span>
-                </div>
-                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Perplexity</div>
-                <div className="text-lg font-black text-slate-800">Oct 15</div>
-                <div className="text-[10px] text-slate-500 font-medium">2025</div>
-              </div>
-            </div>
+                   {/* Perplexity */}
+                   <div className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 border border-slate-100 min-w-[100px]">
+                     <div className="text-2xl mb-2">🔮</div>
+                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Perplexity</div>
+                     <div className="text-lg font-black text-slate-800">Oct</div>
+                     <div className="text-xs text-slate-400 font-medium">2025</div>
+                   </div>
+                 </div>
 
-            {/* Divider */}
-            <div className="relative my-3">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-dashed border-slate-300"></div>
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-gradient-to-br from-slate-50 via-white to-slate-50 px-3 py-0.5 text-[10px] font-black text-slate-400 uppercase tracking-widest rounded-full border border-slate-200">
-                  vs
-                </span>
-              </div>
-            </div>
+                 {/* Divider */}
+                 <div className="flex md:flex-col items-center gap-4 text-slate-300">
+                   <div className="h-px w-12 md:w-px md:h-12 bg-slate-200"></div>
+                   <span className="font-bold text-xs uppercase tracking-widest text-slate-400">vs</span>
+                   <div className="h-px w-12 md:w-px md:h-12 bg-slate-200"></div>
+                 </div>
 
-            {/* CollabGPT (Below, Highlighted) */}
-            <div className="flex justify-center">
-              <div className="relative">
-                {/* Glow effect */}
-                <div className="absolute inset-0 bg-indigo-400 blur-lg opacity-25 rounded-xl"></div>
-                
-                {/* Main card */}
-                <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-700 rounded-xl p-3 shadow-xl border border-indigo-400">
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full p-1.5 shadow-lg animate-pulse border border-white">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                    </svg>
-                  </div>
-                  
-                  <div className="text-center text-white h-25">
-                    <div className="w-9 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-1.5 border border-white/30">
-                      <span className="text-lg">🚀</span>
+                 {/* CollabGPT */}
+                 <div className="relative">
+                    <div className="absolute inset-0 bg-indigo-500 blur-2xl opacity-20"></div>
+                    <div className="relative bg-indigo-600 text-white p-6 rounded-2xl shadow-lg border border-indigo-500 min-w-[180px] transform hover:scale-105 transition-transform duration-300">
+                      <div className="absolute -top-3 -right-3 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-1 rounded-full shadow-md">
+                        FIRST
+                      </div>
+                      <div className="text-3xl mb-3">🚀</div>
+                      <div className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider mb-1">CollabGPT</div>
+                      <div className="text-2xl font-black mb-1">20 March</div>
+                      <div className="text-sm font-medium text-indigo-100">2025</div>
                     </div>
-                    <div className="text-[9px] font-bold mb-1 text-indigo-100 uppercase tracking-wider">CollabGPT</div>
-                    <div className="text-2xl font-black mb-0.5 tracking-tight">20 March</div>
-                    <div className="text-xs text-indigo-100 font-semibold mb-2">2025</div>
-                    <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest bg-white text-indigo-600 rounded-full px-2.5 py-1 shadow-md">
-                      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                      </svg>
-                      First to Ship
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                 </div>
 
-            <div className="mt-7 text-center">
-              <p className="text-[10px] text-slate-500">
-                Shipped <span className="font-black text-indigo-600 text-xs">9+ months earlier</span> than the competition
-              </p>
-            </div>
+               </div>
+               
+               <div className="mt-10 pt-8 border-t border-slate-100">
+                 <p className="text-sm font-medium text-slate-500">
+                   We shipped <span className="font-black text-indigo-600 px-1 py-0.5 bg-indigo-50 rounded">9+ months earlier</span> than the competition
+                 </p>
+               </div>
+             </div>
           </div>
         </div>
       </section>
 
       {/* Core Engineering Philosophy */}
-      <section className="bg-slate-50 py-24 border-y border-slate-100">
+      <section className="bg-slate-50 py-12 border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-12">
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
                 <FileStack className="text-indigo-600 h-6 w-6" />
               </div>
@@ -202,7 +206,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
                 <Users className="text-emerald-600 h-6 w-6" />
               </div>
@@ -212,7 +216,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
                 <ShieldCheck className="text-amber-600 h-6 w-6" />
               </div>
@@ -225,41 +229,40 @@ const LandingPage = () => {
         </div>
       </section>
 
+      <section className="py-12 bg-white">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 className="text-3xl font-bold mb-6">Open Source Community Driven</h2>
+      <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
+        Our plateform is open source. As we are big time open-source fans because of its collaborative nature and growth-for-all
+        persona. We built CollabGPT a community of folks just like us because we wanted to give something back to place we have
+        learnt so much from.
+      </p>
+      <p className="text-gray-600 my-4 mb-8 max-w-2xl mx-auto text-lg">
+        You can be a part of this journey by helping us improve CollabGPT for thousands of people around the world.
+      </p>
+      <div className="flex justify-center space-x-4">
+        <Link to={'https://github.com/adnankhan46/collab-gpt-rag'}>
+        <button className="w-fit px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-blue-700">
+          Contribute to Github
+        </button>
+        </Link>
+        <Link to={'https://github.com/adnankhan46/collab-gpt-rag'}>
+        <button className="px-3 py-3 border border-gray-300 rounded-md hover:bg-gray-50">
+          Star us on GitHub
+        </button>
+        </Link>
+      </div>
+    </div>
+  </section>
+
       {/* Final CTA & Creator Section */}
-      <section className="py-16 bg-white border-t border-slate-50">
+      <section className="py-8 bg-white border-t border-slate-50">
         <div className="max-w-5xl mx-auto px-6">
-          {/* CTA Card */}
-          <div className="rounded-[40px] bg-indigo-600 py-16 px-8 text-center text-white shadow-2xl shadow-indigo-200 mb-20">
-            <h2 className="text-4xl font-bold mb-6 italic">Built first. Built better.</h2>
-            <p className="text-indigo-100 mb-10 text-lg max-w-xl mx-auto">
-              Experience the original collaborative document engine. 
-              Deploy your own space in seconds.
-            </p>
-            <button 
-              onClick={() => navigate('/signup')}
-              className="cursor-pointer px-12 py-5 bg-white text-indigo-600 rounded-2xl font-black text-xl hover:bg-slate-50 transition-all shadow-lg mb-8"
-            >
-              Create Your Space
-            </button>
-            
-            {/* Project Github Link */}
-            <div className="flex justify-center">
-              <a 
-                href="https://github.com/adnankhan46/collab-gpt-rag" 
-                target="_blank" 
-                rel="noreferrer"
-                className="flex items-center gap-2 text-indigo-200 hover:text-white transition-colors text-sm font-medium"
-              >
-                <Github className="h-5 w-5" />
-                View Project on GitHub
-              </a>
-            </div>
-          </div>
 
           {/* Founders/Developers Section */}
           <div className="text-center">
             <h3 className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-10">
-              Engineered By
+              Built By
             </h3>
             
             <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">

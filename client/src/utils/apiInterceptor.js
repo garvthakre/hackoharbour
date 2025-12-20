@@ -3,8 +3,8 @@ const originalFetch = window.fetch;
 window.fetch = async (...args) => {
   const isServerActive = import.meta.env.VITE_IS_SERVER_ACTIVE;
   if (isServerActive && isServerActive.toLowerCase() === 'false') {
-    window.alert("Server is temorirely down");
-    return Promise.reject(new Error("Server is temorirely down"));
+    window.alert("Server is temporarily down");
+    return Promise.reject(new Error("Server is temporarily down"));
   }
 
   let [resource, config] = args;
